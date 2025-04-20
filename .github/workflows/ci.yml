@@ -1,6 +1,12 @@
 name: Full CI
 
 on:
+  workflow_call:
+    inputs:
+      image:
+        description: "Docker image name (e.g. my-org/myapp)"
+        required: true
+        type: string
   workflow_dispatch:
     inputs:
       image:
