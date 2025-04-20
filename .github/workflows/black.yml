@@ -1,0 +1,38 @@
+name: Reusable Black Runner
+
+on:
+  workflow_call:
+    inputs:
+      image_tag:
+        required: true
+        type: string
+      image:
+        required: true
+        type: string
+      registry:
+        required: false
+        type: string
+        default: ghcr.io
+
+jobs:
+  black:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: docker-image
+      - run: docker load -i image.tar
+      - name: Run black
+        run: |
+          docker run --rm ${{ inputs.registry }}/${{ inputs.image }}:${{ inputs.image_tag }} black --check --diff . | tee black.txt || true
+          cat black.txt
+      - name: Upload black output
+        uses: actions/upload-artifact@v4
+        with:
+          name: black
+          path: black.txt
+      - name: Add summary
+        run: |
+          echo '### ⚫ Black Report' >> $GITHUB_STEP_SUMMARY
+          cat black-report.txt | tee /dev/stderr >> $GITHUB_STEP_SUMMARY

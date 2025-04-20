@@ -1,0 +1,42 @@
+name: Full CI
+
+on:
+  workflow_dispatch:
+    inputs:
+      image:
+        description: "Docker image name (e.g. my-org/myapp)"
+        required: true
+        type: string
+  push:
+    branches: [main]
+    tags: ["v*.*.*"]
+
+jobs:
+  build:
+    uses: ./.github/workflows/build.yml
+    with:
+      image: ${{ inputs.image }}
+    secrets:
+      REGISTRY_USER: ${{ secrets.REGISTRY_USER }}
+      REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
+
+  pytest:
+    needs: build
+    uses: ./.github/workflows/pytest.yml
+    with:
+      image_tag: ${{ needs.build.outputs.image_tag }}
+      image: ${{ inputs.image }}
+
+  black:
+    needs: build
+    uses: ./.github/workflows/black.yml
+    with:
+      image_tag: ${{ needs.build.outputs.image_tag }}
+      image: ${{ inputs.image }}
+
+  flake8:
+    needs: build
+    uses: ./.github/workflows/flake8.yml
+    with:
+      image_tag: ${{ needs.build.outputs.image_tag }}
+      image: ${{ inputs.image }}

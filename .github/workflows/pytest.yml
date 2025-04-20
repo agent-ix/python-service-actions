@@ -1,0 +1,37 @@
+name: Reusable Pytest Runner
+
+on:
+  workflow_call:
+    inputs:
+      image_tag:
+        required: true
+        type: string
+      image:
+        required: true
+        type: string
+      registry:
+        required: false
+        type: string
+        default: ghcr.io
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: docker-image
+      - run: docker load -i image.tar
+      - name: Run pytest and output report
+        run: |
+          docker run --rm ${{ inputs.registry }}/${{ inputs.image }}:${{ inputs.image_tag }} pytest --json-report --json-report-file=pytest.json || true
+      - name: Upload pytest JSON output
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytest
+          path: pytest.json
+      - name: Format failed tests into summary
+        run: |
+          echo '### ❌ Failed Tests' >> $GITHUB_STEP_SUMMARY
+          jq -r '.tests[] | select(.outcome == "failed") | "- ❌ \(.nodeid)"' pytest.json | tee /dev/stderr >> $GITHUB_STEP_SUMMARY
