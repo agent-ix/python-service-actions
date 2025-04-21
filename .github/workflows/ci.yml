@@ -7,15 +7,11 @@ on:
         description: "Docker image name (e.g. my-org/myapp)"
         required: true
         type: string
-  workflow_dispatch:
-    inputs:
-      image:
-        description: "Docker image name (e.g. my-org/myapp)"
-        required: true
-        type: string
-  push:
-    branches: [main]
-    tags: ["v*.*.*"]
+      secrets:
+        REGISTRY_USER:
+          required: true
+        REGISTRY_PASSWORD:
+          required: true
 
 jobs:
   build:
