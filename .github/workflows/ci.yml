@@ -7,15 +7,15 @@ on:
         description: "Docker image name (e.g. my-org/myapp)"
         required: true
         type: string
-      secrets:
-        REGISTRY_USER:
-          type: string
-          description: "Docker registry username"
-          required: true
-        REGISTRY_PASSWORD:
-          type: string
-          required: true
-          description: "Docker registry password"
+    secrets:
+      REGISTRY_USER:
+        type: string
+        description: "Docker registry username"
+        required: true
+      REGISTRY_PASSWORD:
+        type: string
+        required: true
+        description: "Docker registry password"
 
 jobs:
   build:
