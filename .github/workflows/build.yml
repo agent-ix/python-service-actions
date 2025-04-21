@@ -25,9 +25,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set up poetry
+        uses: abatilo/actions-poetry@v3
+        with:
+          poetry-version: 1.8.4
+          virtualenvs-create: false
+          virtualenvs-in-project: false
+          cache: true
+
       - name: Generate version tag from poetry dynamic versioning
         id: set-tag
         run: |
+          poetry self add poetry-dynamic-versioning
           version=$(make version)
           echo "image_tag=$version" >> "$GITHUB_OUTPUT"
 
