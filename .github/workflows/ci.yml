@@ -7,6 +7,10 @@ on:
         description: "Docker image name (e.g. my-org/myapp)"
         required: true
         type: string
+      registry:
+        required: false
+        type: string
+        default: ghcr.io
     secrets:
       REGISTRY_USER:
         description: "Docker registry username"
