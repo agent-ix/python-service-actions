@@ -25,10 +25,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Generate version tag from pbr
+      - name: Generate version tag from poetry dynamic versioning
         id: set-tag
         run: |
-          version=$(python setup.py --version)
+          version=$(make version)
           echo "image_tag=$version" >> "$GITHUB_OUTPUT"
 
       - name: Docker login
