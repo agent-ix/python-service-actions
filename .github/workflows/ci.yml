@@ -9,11 +9,9 @@ on:
         type: string
     secrets:
       REGISTRY_USER:
-        type: string
         description: "Docker registry username"
         required: true
       REGISTRY_PASSWORD:
-        type: string
         required: true
         description: "Docker registry password"
 
