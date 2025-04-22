@@ -43,8 +43,11 @@ jobs:
       image: ${{ inputs.image }}
 
   flake8:
+    runs-on: ubuntu-latest
     needs: build
-    uses: ./.github/workflows/flake8.yml
-    with:
-      image_tag: ${{ needs.build.outputs.image_tag }}
-      image: ${{ inputs.image }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./github/actions/flake8-runner
+        with:
+          image: ${{ inputs.image }}
+          image_tag: ${{ needs.build.outputs.image_tag }}
