@@ -47,7 +47,7 @@ jobs:
     needs: build
     steps:
       - uses: actions/checkout@v4
-      - uses: ./github/actions/flake8-runner
+      - uses: ./github/actions/flake8
         with:
           image: ${{ inputs.image }}
           image_tag: ${{ needs.build.outputs.image_tag }}
