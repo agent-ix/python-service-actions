@@ -15,6 +15,10 @@ on:
         required: true
       REGISTRY_PASSWORD:
         required: true
+    outputs:
+      image_tag:
+        description: "The tag for the built Docker image"
+        value: ${{ jobs.build.outputs.image_tag }}
 
 jobs:
   build:
