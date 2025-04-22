@@ -25,7 +25,9 @@ jobs:
       - run: docker load -i image.tar
       - name: Run black
         run: |
-          docker run --rm ${{ inputs.registry }}/${{ inputs.image }}:${{ inputs.image_tag }} black --check --diff . | tee black.txt || true
+          set -o pipefail
+          docker run --rm ${{ inputs.registry }}/${{ inputs.image }}:${{ inputs.image_tag }} \
+            black --check --diff . 2>&1 | tee black.txt
           cat black.txt
       - name: Upload black output
         uses: actions/upload-artifact@v4
