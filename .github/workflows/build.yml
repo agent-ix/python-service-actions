@@ -39,6 +39,15 @@ jobs:
           poetry self add poetry-dynamic-versioning
           version=$(make version)
           echo "image_tag=$version" >> "$GITHUB_OUTPUT"
+          echo "Version tag from `make version`: $version"
+
+      - name: Extract description from pyproject.toml
+        id: get-description
+        run: |
+          pip install toml-cli
+          desc=$(toml get --toml-path pyproject.toml tool.poetry.description | sed 's/^"//;s/"$//')
+          echo "description=$desc" >> "$GITHUB_OUTPUT"
+          echo "Description from pyproject.toml: $desc"
 
       - name: Docker login
         uses: docker/login-action@v3
@@ -60,11 +69,15 @@ jobs:
           cache-to: type=registry,ref=${{ inputs.registry }}/${{ inputs.image }}:buildcache,mode=max
           build-args: |
             BUILDKIT_INLINE_CACHE=1
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.event.repository.full_name }}
+            org.opencontainers.image.description=${{ steps.get-description.outputs.description }}
+            org.opencontainers.image.version=${{ steps.set-tag.outputs.image_tag }}
 
       - name: Add image tag summary
         run: |
           echo "### 🐳 Docker Image" >> $GITHUB_STEP_SUMMARY
-          echo "- *${{ steps.set-tag.outputs.image_tag }}* [registry](https://${{ inputs.registry }}/v2/${{ inputs.image }}/manifests/${{ steps.set-tag.outputs.image_tag }})" >> $GITHUB_STEP_SUMMARY
+          echo "- *${{ steps.set-tag.outputs.image_tag }}* [registry](https://github.com/orgs/${{ github.repository_owner }}/packages/container/${{ inputs.image_name }}?tag=${{ steps.set-tag.outputs.image_tag }})" >> $GITHUB_STEP_SUMMARY
 
       - name: Pull pushed image (for tarball export)
         run: docker pull ${{ inputs.registry }}/${{ inputs.image }}:${{ steps.set-tag.outputs.image_tag }}
