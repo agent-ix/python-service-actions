@@ -22,8 +22,8 @@ while :; do
   id=$(echo "$response" | jq -r --arg TAG "$TAG" --arg URL "$EXPECTED_URL" '
     .[] |
     select(
-      .metadata.container.tags | index($TAG) and
-      .package_html_url == $URL
+      (.package_html_url // "") == $URL and
+      ((.metadata.container.tags // []) | index($TAG))
     ) | .id' | head -n1)
 
   if [[ -n "$id" ]]; then
