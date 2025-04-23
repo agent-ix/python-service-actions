@@ -33,7 +33,7 @@ jobs:
           set -o pipefail
           docker run \
             --rm \
-            -v $(PWD):/app \
+            -v "$GITHUB_WORKSPACE":/app \
             ${{ inputs.registry }}/${{ inputs.image }}:${{ inputs.image_tag }} \
             pytest --json-report --json-report-file=pytest.json
 
