@@ -25,3 +25,5 @@ runs:
           "${{ inputs.tag }}")
         echo "Resolved image_id: $IMAGE_ID"
         echo "$IMAGE_ID" >> "$GITHUB_OUTPUT"
+        
+        cat "$GITHUB_OUTPUT"
