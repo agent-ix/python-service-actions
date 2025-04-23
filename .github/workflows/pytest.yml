@@ -45,7 +45,7 @@ jobs:
 
       - name: Summarize pytest results
         if: always()
-        uses: agent-ix/pytest-summary-action@main
+        uses: agent-ix/pytest-summary-action@v1
         with:
           report-path: pytest.json
 
