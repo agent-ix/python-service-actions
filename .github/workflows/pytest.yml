@@ -31,10 +31,11 @@ jobs:
         continue-on-error: true
         run: |
           set -o pipefail
-          docker run --rm ${{ inputs.registry }}/${{ inputs.image }}:${{ inputs.image_tag }} \
+          docker run
+            --rm
+            -v $(PWD):/app
+            ${{ inputs.registry }}/${{ inputs.image }}:${{ inputs.image_tag }} \
             pytest --json-report --json-report-file=pytest.json
-          ls -la
-          cat pytest.json
 
       - name: Upload pytest JSON report
         if: always()
@@ -45,7 +46,7 @@ jobs:
 
       - name: Summarize pytest results
         if: always()
-        uses: agent-ix/pytest-summary-action@v1
+        uses: agent-ix/pytest-summary@v1
         with:
           report-path: pytest.json
 
