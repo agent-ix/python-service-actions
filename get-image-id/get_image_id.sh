@@ -13,6 +13,8 @@ while :; do
   response=$(gh api -H "Accept: application/vnd.github+json" \
     "/orgs/$ORG/packages/container/$IMAGE/versions?per_page=$PER_PAGE&page=$PAGE")
 
+  cat $response
+
   id=$(echo "$response" | jq -r --arg TAG "$TAG" --arg ORG "$ORG" --arg IMAGE "$IMAGE" '
     .[] |
     select(
