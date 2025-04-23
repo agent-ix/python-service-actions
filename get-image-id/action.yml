@@ -17,7 +17,8 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - shell: bash
+    - id: get-image-id
+      shell: bash
       run: |
         chmod +x ${{ github.action_path }}/get_image_id.sh
         IMAGE_ID=$(${{ github.action_path }}/get_image_id.sh \
