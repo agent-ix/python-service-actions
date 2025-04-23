@@ -19,20 +19,48 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/download-artifact@v4
         with:
           name: docker-image
+
       - run: docker load -i image.tar
-      - name: Run pytest and output report
+
+      - name: Run pytest and generate JSON report
+        id: run_pytest
+        continue-on-error: true
         run: |
           set -o pipefail
-          docker run --rm ${{ inputs.registry }}/${{ inputs.image }}:${{ inputs.image_tag }} pytest --json-report --json-report-file=pytest.json
-      - name: Upload pytest JSON output
+          docker run --rm ${{ inputs.registry }}/${{ inputs.image }}:${{ inputs.image_tag }} \
+            pytest --json-report --json-report-file=pytest.json
+
+      - name: Upload pytest JSON report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: pytest
           path: pytest.json
-      - name: Format failed tests into summary
+
+      - name: Summarize pytest results
+        if: always()
+        id: summary
         run: |
-          echo '### ❌ Failed Tests' >> $GITHUB_STEP_SUMMARY
-          jq -r '.tests[] | select(.outcome == "failed") | "- ❌ \(.nodeid)"' pytest.json | tee /dev/stderr >> $GITHUB_STEP_SUMMARY
+          echo '### 🧪 Pytest Report' >> $GITHUB_STEP_SUMMARY
+
+          PASS_COUNT=$(jq '[.tests[] | select(.outcome == "passed")] | length' pytest.json)
+          FAIL_COUNT=$(jq '[.tests[] | select(.outcome == "failed")] | length' pytest.json)
+          SKIP_COUNT=$(jq '[.tests[] | select(.outcome == "skipped")] | length' pytest.json)
+
+          if [[ "$PASS_COUNT" -gt 0 ]]; then
+            echo "✅ ${PASS_COUNT} passed" >> $GITHUB_STEP_SUMMARY
+          fi
+          if [[ "$FAIL_COUNT" -gt 0 ]]; then
+            echo "❌ ${FAIL_COUNT} failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          if [[ "$SKIP_COUNT" -gt 0 ]]; then
+              echo "⏭️ ${SKIP_COUNT} skipped" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Fail if pytest failed
+        if: steps.run_pytest.outcome != 'success'
+        run: exit 1
