@@ -31,9 +31,9 @@ jobs:
         continue-on-error: true
         run: |
           set -o pipefail
-          docker run
-            --rm
-            -v $(PWD):/app
+          docker run \
+            --rm \
+            -v $(PWD):/app \
             ${{ inputs.registry }}/${{ inputs.image }}:${{ inputs.image_tag }} \
             pytest --json-report --json-report-file=pytest.json
 
