@@ -17,7 +17,7 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - id: resolve
+    - id: get-image-id
       shell: bash
       run: |
         chmod +x ${{ github.action_path }}/get_image_id.sh
@@ -26,5 +26,15 @@ runs:
           "${{ inputs.tag }}")
         echo "Resolved image_id: $IMAGE_ID"
         echo "$IMAGE_ID" >> "$GITHUB_OUTPUT"
-        
-        cat "$GITHUB_OUTPUT"
+
+    - name: Write Docker Image Summary
+      shell: bash
+      run: |
+        IMAGE_NAME="${{ inputs.image#*/ }}"
+        echo "### 🐳 Docker Image" >> "$GITHUB_STEP_SUMMARY"
+        echo "- *${{ inputs.tag }}* [registry](https://github.com/orgs/${{ github.repository_owner }}/packages/container/$IMAGE_NAME/${{ steps.get-image-id.outputs.image_id }}?tag=${{ inputs.tag }})" >> "$GITHUB_STEP_SUMMARY"
+        echo "- ${{ steps.get-image-id.outputs.image_id }}" >> "$GITHUB_STEP_SUMMARY"
+        echo "" >> "$GITHUB_STEP_SUMMARY"
+        echo '```bash' >> "$GITHUB_STEP_SUMMARY"
+        echo "docker pull ghcr.io/${{ inputs.image }}:${{ inputs.tag }}" >> "$GITHUB_STEP_SUMMARY"
+        echo '```' >> "$GITHUB_STEP_SUMMARY"
