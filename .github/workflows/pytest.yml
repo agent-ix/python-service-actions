@@ -33,6 +33,8 @@ jobs:
           set -o pipefail
           docker run --rm ${{ inputs.registry }}/${{ inputs.image }}:${{ inputs.image_tag }} \
             pytest --json-report --json-report-file=pytest.json
+          ls -la
+          cat pytest.json
 
       - name: Upload pytest JSON report
         if: always()
@@ -43,23 +45,9 @@ jobs:
 
       - name: Summarize pytest results
         if: always()
-        id: summary
-        run: |
-          echo '### 🧪 Pytest Report' >> $GITHUB_STEP_SUMMARY
-
-          PASS_COUNT=$(jq '[.tests[] | select(.outcome == "passed")] | length' pytest.json)
-          FAIL_COUNT=$(jq '[.tests[] | select(.outcome == "failed")] | length' pytest.json)
-          SKIP_COUNT=$(jq '[.tests[] | select(.outcome == "skipped")] | length' pytest.json)
-
-          if [[ "$PASS_COUNT" -gt 0 ]]; then
-            echo "✅ ${PASS_COUNT} passed" >> $GITHUB_STEP_SUMMARY
-          fi
-          if [[ "$FAIL_COUNT" -gt 0 ]]; then
-            echo "❌ ${FAIL_COUNT} failed" >> $GITHUB_STEP_SUMMARY
-          fi
-          if [[ "$SKIP_COUNT" -gt 0 ]]; then
-              echo "⏭️ ${SKIP_COUNT} skipped" >> $GITHUB_STEP_SUMMARY
-          fi
+        uses: agent-ix/pytest-summary-action@main
+        with:
+          report-path: pytest.json
 
       - name: Fail if pytest failed
         if: steps.run_pytest.outcome != 'success'
