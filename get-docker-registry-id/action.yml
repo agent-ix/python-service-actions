@@ -1,0 +1,26 @@
+name: Get GHCR Image ID
+
+description: Fetch internal GitHub Container Registry image ID by tag (fast shell version)
+
+inputs:
+  image:
+    required: true
+    description: Container image name org/image
+  tag:
+    required: true
+    description: Image tag to match
+
+outputs:
+  image_id:
+    description: Internal GitHub Packages image ID
+
+runs:
+  using: "composite"
+  steps:
+    - shell: bash
+      run: |
+        chmod +x ${{ github.action_path }}/get_image_id.sh
+        ${{ github.action_path }}/get_image_id.sh \
+          "${{ inputs.image }}" \
+          "${{ inputs.tag }}" \
+          >> "$GITHUB_OUTPUT"

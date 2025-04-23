@@ -78,6 +78,13 @@ jobs:
             org.opencontainers.image.description=${{ steps.get-description.outputs.description }}
             org.opencontainers.image.version=${{ steps.set-tag.outputs.image_tag }}
 
+      - name: Get github image ID
+        uses: agent-ix/python-service-actions/get-image-id@main
+        id: get-image-id
+        with:
+          image: ${{ inputs.image }}
+          tag: ${{ steps.set-tag.outputs.image_tag }}
+
       - name: Add image tag summary
         run: |
           echo "### 🐳 Docker Image" >> $GITHUB_STEP_SUMMARY
