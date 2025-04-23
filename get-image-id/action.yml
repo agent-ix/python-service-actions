@@ -20,7 +20,8 @@ runs:
     - shell: bash
       run: |
         chmod +x ${{ github.action_path }}/get_image_id.sh
-        ${{ github.action_path }}/get_image_id.sh \
+        IMAGE_ID=$(${{ github.action_path }}/get_image_id.sh \
           "${{ inputs.image }}" \
-          "${{ inputs.tag }}" \
-          >> "$GITHUB_OUTPUT"
+          "${{ inputs.tag }}")
+        echo "Resolved image_id: $IMAGE_ID"
+        echo "$IMAGE_ID" >> "$GITHUB_OUTPUT"
