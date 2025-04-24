@@ -32,7 +32,9 @@ runs:
       run: |
         cat ${{ inputs.artifact }}
         echo "registry=$(jq -r '.registry' "${{ inputs.artifact }}")" >> "$GITHUB_OUTPUT"
+        echo "repository=$(jq -r '.repository' "${{ inputs.artifact }}")" >> "$GITHUB_OUTPUT"
         echo "image=$(jq -r '.image' "${{ inputs.artifact }}")" >> "$GITHUB_OUTPUT"
+        echo "tag=$(jq -r '.tag' "${{ inputs.artifact }}")" >> "$GITHUB_OUTPUT"
         echo "url=$(jq -r '.url' "${{ inputs.artifact }}")" >> "$GITHUB_OUTPUT"
         echo "description=$(jq -r '.description' "${{ inputs.artifact }}")" >> "$GITHUB_OUTPUT"
         echo "version=$(jq -r '.version' "${{ inputs.artifact }}")" >> "$GITHUB_OUTPUT"
@@ -76,6 +78,6 @@ runs:
     - name: Print image summary
       uses: agent-ix/python-service-actions/ghcr-docker-summary@main
       with:
-        image: ${{ steps.meta.outputs.repository }}
+        repository: ${{ steps.meta.outputs.repository }}
         tag: ${{ steps.meta.outputs.tag }}
         GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}

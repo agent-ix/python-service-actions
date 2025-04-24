@@ -3,7 +3,7 @@ name: GHCR Docker summary
 description: Output a step summary for a docker image published to GHCR
 
 inputs:
-  image:
+  repository:
     required: true
     description: Container image name org/image
   tag:
@@ -27,7 +27,7 @@ runs:
       run: |
         chmod +x ${{ github.action_path }}/get_image_id.sh
         IMAGE_ID=$(${{ github.action_path }}/get_image_id.sh \
-          "${{ inputs.image }}" \
+          "${{ inputs.repository }}" \
           "${{ inputs.tag }}")
         echo "Resolved image_id: $IMAGE_ID"
         echo "$IMAGE_ID" >> "$GITHUB_OUTPUT"
@@ -35,10 +35,8 @@ runs:
     - name: Write Docker Image Summary
       shell: bash
       run: |
-        IMAGE="${{ inputs.image }}"
-        IMAGE_NAME="${IMAGE##*/}"
         echo "### 🐳 Docker Image" >> "$GITHUB_STEP_SUMMARY"
-        echo "- *${{ inputs.tag }}* [registry](https://github.com/orgs/${{ github.repository_owner }}/packages/container/$IMAGE_NAME/${{ steps.get-image-id.outputs.image_id }}?tag=${{ inputs.tag }})" >> "$GITHUB_STEP_SUMMARY"
+        echo "- *${{ inputs.tag }}* [registry](https://github.com/orgs/${{ github.repository_owner }}/packages/container/${{ inputs.repository }}/${{ steps.get-image-id.outputs.image_id }}?tag=${{ inputs.tag }})" >> "$GITHUB_STEP_SUMMARY"
         echo "" >> "$GITHUB_STEP_SUMMARY"
         echo '```bash' >> "$GITHUB_STEP_SUMMARY"
         echo "docker pull ghcr.io/${{ inputs.image }}:${{ inputs.tag }}" >> "$GITHUB_STEP_SUMMARY"
