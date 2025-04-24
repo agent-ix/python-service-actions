@@ -25,7 +25,7 @@ runs:
     - name: Pull Docker image
       shell: bash
       run: |
-        docker pull ${{ steps.meta.url }}
+        docker pull ${{ steps.meta.outputs.url }}
 
     - name: Run black
       id: run_black
@@ -36,7 +36,7 @@ runs:
         docker run \
           --rm \
           -v "$GITHUB_WORKSPACE":/app \
-          ${{ steps.meta.url }} \
+          ${{ steps.meta.outputs.url }} \
           black --check . 2>&1 | tee black.txt
 
     - name: Upload black output
