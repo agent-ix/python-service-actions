@@ -41,8 +41,7 @@ runs:
       shell: bash
       run: |
         jq -r "to_entries[] | \"\(.key)=\(.value)\"" "${{ inputs.artifact }}" >> "$GITHUB_OUTPUT"
-        jq -r ".labels | to_entries[] | \"label_\(.key | gsub(\"[^a-zA-Z0-9_]\"; \"_\"))=\(.value)\"" "${{ inputs.artifact }}" >> "$GITHUB_OUTPUT"
-    
+
     - name: Docker login
       uses: docker/login-action@v3
       with:

@@ -1,26 +1,31 @@
 name: "Flake8 Runner"
 description: "Run flake8 against a Docker image"
 inputs:
-  image_tag:
-    description: "Tag of the Docker image"
+  artifact:
+    description: "Image build metadata artifact (e.g. image.json)"
+    default: "image.json"
     required: true
-  image:
-    description: "Name of the Docker image (e.g. my-org/my-image)"
-    required: true
-  registry:
-    description: "Registry hostname"
-    required: false
-    default: "ghcr.io"
 
 runs:
   using: "composite"
   steps:
     - uses: actions/checkout@v4
 
+    - uses: actions/download-artifact@v4
+      with:
+        name: ${{ inputs.artifact }}
+        path: .
+
+    - name: Load metadata
+      id: meta
+      shell: bash
+      run: |
+        jq -r "to_entries[] | \"\(.key)=\(.value)\"" "${{ inputs.artifact }}" >> "$GITHUB_OUTPUT"
+
     - name: Pull Docker image
       shell: bash
       run: |
-        docker pull ${{ inputs.registry }}/${{ inputs.image }}:${{ inputs.image_tag }}
+        docker pull ${{ steps.meta.url }}
 
     - name: Run flake8
       id: run_flake8
@@ -31,7 +36,7 @@ runs:
         docker run \
           --rm \
           -v "$GITHUB_WORKSPACE":/app \
-          ${{ inputs.registry }}/${{ inputs.image }}:${{ inputs.image_tag }} \
+          ${{ steps.meta.url }} \
           flake8 --format=default . | tee flake8.txt
 
     - uses: actions/upload-artifact@v4
