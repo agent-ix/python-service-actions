@@ -26,7 +26,6 @@ jobs:
       - uses: agent-ix/python-service-actions/build-image@main
         with:
           image: ${{ inputs.image }}
-        secrets:
           REGISTRY_USER: ${{ secrets.REGISTRY_USER }}
           REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
 
