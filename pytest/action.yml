@@ -20,11 +20,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/download-artifact@v4
-        with:
-          name: docker-image
-
-      - run: docker load -i image.tar
+      - name: Pull Docker image
+        shell: bash
+        run: |
+          docker pull ${{ inputs.registry }}/${{ inputs.image }}:${{ inputs.image_tag }}
 
       - name: Run pytest and generate JSON report
         id: run_pytest

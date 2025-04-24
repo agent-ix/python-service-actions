@@ -80,16 +80,3 @@ runs:
           org.opencontainers.image.source=https://github.com/${{ github.repository }}
           org.opencontainers.image.description=${{ steps.get-description.outputs.description }}
           org.opencontainers.image.version=${{ steps.set-tag.outputs.image_tag }}
-
-    - name: Save image to tarball
-      shell: bash
-      run: |
-        docker pull ${{ inputs.registry }}/${{ inputs.image }}:${{ steps.set-tag.outputs.image_tag }}
-        docker save ${{ inputs.registry }}/${{ inputs.image }}:${{ steps.set-tag.outputs.image_tag }} -o image.tar
-
-    - name: Upload image tarball
-      uses: actions/upload-artifact@v4
-      with:
-        name: docker-image
-        path: image.tar
-        retention-days: 1
