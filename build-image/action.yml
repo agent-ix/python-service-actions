@@ -6,7 +6,7 @@ inputs:
     description: "Docker image name (e.g. my-org/my-app)"
     required: true
   registry:
-    description: "Docker registry"
+    description: "Docker registry"!
     required: false
     default: "ghcr.io"
   registry_user:
