@@ -1,0 +1,52 @@
+name: "Flake8 Runner"
+description: "Run flake8 against a Docker image"
+inputs:
+  image_tag:
+    description: "Tag of the Docker image"
+    required: true
+  image:
+    description: "Name of the Docker image (e.g. my-org/my-image)"
+    required: true
+  registry:
+    description: "Registry hostname"
+    required: false
+    default: "ghcr.io"
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v4
+
+    - uses: actions/download-artifact@v4
+      with:
+        name: docker-image
+
+    - shell: bash
+      run: docker load -i image.tar
+
+    - name: Run flake8
+      id: run_flake8
+      shell: bash
+      continue-on-error: true
+      run: |
+        set -o pipefail
+        docker run --rm ${{ inputs.registry }}/${{ inputs.image }}:${{ inputs.image_tag }} \
+          flake8 --format=default . | tee flake8.txt
+
+    - uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: flake8
+        path: flake8.txt
+
+    - name: Add summary
+      if: always()
+      shell: bash
+      run: |
+        echo '### 🧼 Flake8 Report' >> $GITHUB_STEP_SUMMARY
+        cat flake8.txt | tee /dev/stderr >> $GITHUB_STEP_SUMMARY
+
+    - name: Fail if flake8 failed
+      if: steps.run_flake8.outcome != 'success'
+      shell: bash
+      run: exit 1

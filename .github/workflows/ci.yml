@@ -44,7 +44,7 @@ jobs:
 
   flake8:
     needs: build
-    uses: ./.github/workflows/flake8.yml
+    uses: agent-ix/python-service-actions/flake8@main
     with:
       image_tag: ${{ needs.build.outputs.image_tag }}
       image: ${{ inputs.image }}
