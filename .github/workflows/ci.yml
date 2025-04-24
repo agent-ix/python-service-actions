@@ -26,18 +26,18 @@ jobs:
     outputs:
       image_tag: ${{ steps.set-tag.outputs.image_tag }}
     steps:
+      - uses: actions/checkout@v4
       - name: Generate version tag
-        id: set-tag
+        id: get-tag
         shell: bash
         run: |
           version=$(make version)
           echo "image_tag=$version" >> "$GITHUB_OUTPUT"
           echo "Version tag from make version: $version"
-
       - uses: agent-ix/python-service-actions/build-image@main
         with:
           image: ${{ inputs.image }}
-          image_tag: ${{ steps.set-tag.outputs.image_tag }}
+          image_tag: ${{ steps.get-tag.outputs.image_tag }}
           REGISTRY_USER: ${{ secrets.REGISTRY_USER }}
           REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
 
