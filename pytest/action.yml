@@ -1,26 +1,31 @@
 name: "Pytest Runner"
 description: "Runs pytest in a Docker container and summarizes the results"
 inputs:
-  image_tag:
-    description: "Tag of the Docker image to test"
-    required: true
-  image:
-    description: "Name of the Docker image (e.g. my-org/myapp)"
-    required: true
-  registry:
-    description: "Registry hostname"
+  artifact:
+    description: "Artifact name for the build metadata (e.g. image.json)"
     required: false
-    default: "ghcr.io"
+    default: "image.json"
 
 runs:
   using: "composite"
   steps:
     - uses: actions/checkout@v4
 
+    - uses: actions/download-artifact@v4
+      with:
+        name: ${{ inputs.artifact }}
+        path: .
+
+    - name: Extract URL from metadata
+      id: meta
+      shell: bash
+      run: |
+        echo "url=$(jq -r '.url' "${{ inputs.artifact }}")" >> "$GITHUB_OUTPUT"
+
     - name: Pull Docker image
       shell: bash
       run: |
-        docker pull ${{ inputs.registry }}/${{ inputs.image }}:${{ inputs.image_tag }}
+        docker pull ${{ steps.meta.url }}
 
     - name: Run pytest and generate JSON report
       id: run_pytest
@@ -31,7 +36,7 @@ runs:
         docker run \
           --rm \
           -v "$GITHUB_WORKSPACE":/app \
-          ${{ inputs.registry }}/${{ inputs.image }}:${{ inputs.image_tag }} \
+          ${{ steps.meta.url }} \
           pytest --json-report --json-report-file=pytest.json
 
     - name: Upload pytest JSON report

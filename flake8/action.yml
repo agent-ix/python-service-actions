@@ -16,11 +16,11 @@ runs:
         name: ${{ inputs.artifact }}
         path: .
 
-    - name: Load metadata
+    - name: Extract URL from metadata
       id: meta
       shell: bash
       run: |
-        jq -r "to_entries[] | \"\(.key)=\(.value)\"" "${{ inputs.artifact }}" >> "$GITHUB_OUTPUT"
+        echo "url=$(jq -r '.url' "${{ inputs.artifact }}")" >> "$GITHUB_OUTPUT"
 
     - name: Pull Docker image
       shell: bash
