@@ -9,6 +9,9 @@ inputs:
   tag:
     required: true
     description: Image tag to match
+  GITHUB_TOKEN:
+    description: GitHub token for authentication
+    required: true
 
 outputs:
   image_id:
@@ -19,6 +22,8 @@ runs:
   steps:
     - id: get-image-id
       shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.GITHUB_TOKEN }}
       run: |
         chmod +x ${{ github.action_path }}/get_image_id.sh
         IMAGE_ID=$(${{ github.action_path }}/get_image_id.sh \

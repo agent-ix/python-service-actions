@@ -75,5 +75,4 @@ runs:
       with:
         image: ${{ steps.meta.outputs.repository }}
         tag: ${{ steps.meta.outputs.tag }}
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
