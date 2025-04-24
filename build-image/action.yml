@@ -27,24 +27,17 @@ runs:
   steps:
     - uses: actions/checkout@v4
 
-    - name: Set up poetry
-      uses: abatilo/actions-poetry@v3
+    - uses: actions/download-artifact@v4
       with:
-        poetry-version: 1.8.4
+        name: ${{ inputs.artifact }}
+        path: .
 
-    - name: Install dependencies for versioning and parsing
+    - name: Read image metadata from ${{ inputs.artifact }}
+      id: meta
       shell: bash
       run: |
-        poetry self add poetry-dynamic-versioning
-        pip install toml-cli
-
-    - name: Extract description from pyproject.toml
-      id: get-description
-      shell: bash
-      run: |
-        desc=$(toml get --toml-path pyproject.toml tool.poetry.description | sed 's/^"//;s/"$//')
-        echo "description=$desc" >> "$GITHUB_OUTPUT"
-        echo "Project description: $desc"
+        tag=$(jq -r .tag "${{ inputs.artifact }}")
+        echo "tag=$tag" >> $GITHUB_OUTPUT
 
     - name: Docker login
       uses: docker/login-action@v3
@@ -61,12 +54,12 @@ runs:
       with:
         context: .
         push: true
-        tags: ${{ inputs.registry }}/${{ inputs.image }}:${{ inputs.image_tag }}
-        cache-from: type=registry,ref=${{ inputs.registry }}/${{ inputs.image }}:buildcache
-        cache-to: type=registry,ref=${{ inputs.registry }}/${{ inputs.image }}:buildcache,mode=max
+        tags: ${{ steps.meta.url }}
+        cache-from: type=registry,ref=${{ steps.meta.image }}:buildcache
+        cache-to: type=registry,ref=${{ steps.meta.image }}:buildcache,mode=max
         build-args: |
           BUILDKIT_INLINE_CACHE=1
         labels: |
-          org.opencontainers.image.source=https://github.com/${{ github.repository }}
-          org.opencontainers.image.description=${{ steps.get-description.outputs.description }}
-          org.opencontainers.image.version=${{ inputs.image_tag }}
+          org.opencontainers.image.source=${{ steps.meta.source }}
+          org.opencontainers.image.description=${{ steps.meta.description }}
+          org.opencontainers.image.version=${{ steps.meta.version }}

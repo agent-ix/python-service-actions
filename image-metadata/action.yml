@@ -1,0 +1,69 @@
+name: "Image Metadata"
+description: "Generates a build.json file with Docker image metadata"
+inputs:
+  image:
+    description: "Docker image name (e.g. my-org/myapp)"
+    required: true
+  registry:
+    description: "Container registry"
+    required: false
+    default: "ghcr.io"
+  artifact:
+    description: "build metadata artifact (build.json)"
+    required: false
+    default: "image.json"
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Poetry
+      uses: abatilo/actions-poetry@v3
+      with:
+        poetry-version: 1.8.4
+
+    - name: Install dependencies for versioning and parsing
+      shell: bash
+      run: |
+        poetry self add poetry-dynamic-versioning
+        pip install toml-cli
+
+    - name: Extract version from dynamic versioning
+      id: set-tag
+      shell: bash
+      run: |
+        poetry self add poetry-dynamic-versioning
+        version=$(make version)
+        echo "image_tag=$version" >> "$GITHUB_OUTPUT"
+
+    - name: Extract description from pyproject.toml
+      id: get-description
+      shell: bash
+      run: |
+        pip install toml-cli
+        desc=$(toml get --toml-path pyproject.toml tool.poetry.description | sed 's/^"//;s/"$//')
+        echo "description=$desc" >> "$GITHUB_OUTPUT"
+
+    - name: Write build.json
+      shell: bash
+      run: |
+        cat <<EOF > build.json
+        {
+          "registry": "${{ inputs.registry }}",
+          "repository": "${{ inputs.image }}",
+          "tag": "${{ steps.set-tag.outputs.image_tag }}",
+          "image": "${{ inputs.registry }}/${inputs.image }}",
+          "description": "${{ steps.get-description.outputs.description }}",
+          "url": "${{ inputs.registry }}/${{ inputs.image }}:${{ steps.set-tag.outputs.image_tag }}",
+          "source": "https://github.com/${{ github.repository }}",
+          "description": "${{ steps.get-description.outputs.description }}",
+          "version": "${{ steps.set-tag.outputs.image_tag }}"
+        }
+        EOF
+        cat build.json
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.artifact }}
+        path: ${{ inputs.artifact }}
