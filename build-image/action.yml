@@ -69,3 +69,11 @@ runs:
           org.opencontainers.image.source=${{ steps.meta.outputs.source }}
           org.opencontainers.image.description=${{ steps.meta.outputs.description }}
           org.opencontainers.image.version=${{ steps.meta.outputs.version }}
+
+    - name: Print image summary
+      uses: agent-ix/python-service-actions/ghcr-docker-summary@main
+      with:
+        image: ${{ steps.meta.outputs.repository }}
+        tag: ${{ steps.meta.outputs.tag }}
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
