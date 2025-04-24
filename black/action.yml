@@ -1,0 +1,52 @@
+name: Reusable Black Runner
+
+on:
+  workflow_call:
+    inputs:
+      image_tag:
+        required: true
+        type: string
+      image:
+        required: true
+        type: string
+      registry:
+        required: false
+        type: string
+        default: ghcr.io
+
+jobs:
+  black:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: docker-image
+
+      - run: docker load -i image.tar
+
+      - name: Run black
+        id: run_black
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          docker run --rm ${{ inputs.registry }}/${{ inputs.image }}:${{ inputs.image_tag }} \
+            black --check . 2>&1 | tee black.txt
+
+      - name: Upload black output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: black
+          path: black.txt
+
+      - name: Add summary
+        if: always()
+        run: |
+          echo '### ⚫ Black Report' >> $GITHUB_STEP_SUMMARY
+          cat black.txt | tee /dev/stderr >> $GITHUB_STEP_SUMMARY
+
+      - name: Fail if black failed
+        if: steps.run_black.outcome != 'success'
+        run: exit 1

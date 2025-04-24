@@ -21,30 +21,38 @@ on:
 
 jobs:
   build:
-    uses: ./.github/workflows/build.yml
-    with:
-      image: ${{ inputs.image }}
-    secrets:
-      REGISTRY_USER: ${{ secrets.REGISTRY_USER }}
-      REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: agent-ix/python-service-actions/build-image@main
+        with:
+          image: ${{ inputs.image }}
+        secrets:
+          REGISTRY_USER: ${{ secrets.REGISTRY_USER }}
+          REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
 
   pytest:
+    runs-on: ubuntu-latest
     needs: build
-    uses: ./.github/workflows/pytest.yml
-    with:
-      image_tag: ${{ needs.build.outputs.image_tag }}
-      image: ${{ inputs.image }}
+    steps:
+      - uses: agent-ix/python-service-actions/pytest@main
+        with:
+          image_tag: ${{ needs.build.outputs.image_tag }}
+          image: ${{ inputs.image }}
 
   black:
+    runs-on: ubuntu-latest
     needs: build
-    uses: ./.github/workflows/black.yml
-    with:
-      image_tag: ${{ needs.build.outputs.image_tag }}
-      image: ${{ inputs.image }}
+    steps:
+      - uses: agent-ix/python-service-actions/black@main
+        with:
+          image_tag: ${{ needs.build.outputs.image_tag }}
+          image: ${{ inputs.image }}
 
   flake8:
+    runs-on: ubuntu-latest
     needs: build
-    uses: agent-ix/python-service-actions/flake8@main
-    with:
-      image_tag: ${{ needs.build.outputs.image_tag }}
-      image: ${{ inputs.image }}
+    steps:
+      - uses: agent-ix/python-service-actions/flake8@main
+        with:
+          image_tag: ${{ needs.build.outputs.image_tag }}
+          image: ${{ inputs.image }}
