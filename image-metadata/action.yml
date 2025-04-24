@@ -53,7 +53,7 @@ runs:
           "registry": "${{ inputs.registry }}",
           "repository": "${{ inputs.image }}",
           "tag": "${{ steps.set-tag.outputs.image_tag }}",
-          "image": "${{ inputs.registry }}/${inputs.image }}",
+          "image": "${{ inputs.registry }}/${{ inputs.image }}",
           "description": "${{ steps.get-description.outputs.description }}",
           "url": "${{ inputs.registry }}/${{ inputs.image }}:${{ steps.set-tag.outputs.image_tag }}",
           "source": "https://github.com/${{ github.repository }}",
