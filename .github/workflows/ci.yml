@@ -39,15 +39,24 @@ jobs:
     needs: build
     steps:
       - uses: agent-ix/python-service-actions/pytest@main
+        with:
+          REGISTRY_USER: ${{ secrets.REGISTRY_USER }}
+          REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
 
   black:
     runs-on: ubuntu-latest
     needs: build
     steps:
       - uses: agent-ix/python-service-actions/black@main
+        with:
+          REGISTRY_USER: ${{ secrets.REGISTRY_USER }}
+          REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
 
   flake8:
     runs-on: ubuntu-latest
     needs: build
     steps:
       - uses: agent-ix/python-service-actions/flake8@main
+        with:
+          REGISTRY_USER: ${{ secrets.REGISTRY_USER }}
+          REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}

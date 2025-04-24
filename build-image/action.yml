@@ -8,9 +8,6 @@ inputs:
   registry_password:
     description: "Registry password"
     required: true
-  github_token:
-    description: "GitHub token for summary or label setting"
-    required: false
   artifact:
     description: "Image build metadata artifact (e.g. image.json)"
     default: "image.json"
