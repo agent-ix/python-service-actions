@@ -30,6 +30,7 @@ runs:
       id: meta
       shell: bash
       run: |
+        cat ${{ inputs.artifact }}
         echo "registry=$(jq -r '.registry' "${{ inputs.artifact }}")" >> "$GITHUB_OUTPUT"
         echo "image=$(jq -r '.image' "${{ inputs.artifact }}")" >> "$GITHUB_OUTPUT"
         echo "url=$(jq -r '.url' "${{ inputs.artifact }}")" >> "$GITHUB_OUTPUT"
