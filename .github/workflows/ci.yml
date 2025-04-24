@@ -33,6 +33,7 @@ jobs:
         with:
           REGISTRY_USER: ${{ secrets.REGISTRY_USER }}
           REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   pytest:
     runs-on: ubuntu-latest
