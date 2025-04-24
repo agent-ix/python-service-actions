@@ -21,6 +21,10 @@ inputs:
   github_token:
     description: "GitHub token for summary or label setting"
     required: false
+  artifact:
+    description: "Image build metadata artifact (e.g. image.json)"
+    default: "image.json"
+    required: true
 
 runs:
   using: "composite"
