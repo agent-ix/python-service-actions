@@ -37,6 +37,16 @@ runs:
         echo "version=$(jq -r '.version' "${{ inputs.artifact }}")" >> "$GITHUB_OUTPUT"
         echo "source=$(jq -r '.source' "${{ inputs.artifact }}")" >> "$GITHUB_OUTPUT"
 
+    - name: Test echo metadata
+      shell: bash
+      run: |
+          echo "registry=${{ steps.meta.outputs.registry }}"
+          echo "image=${{ steps.meta.outputs.image }}"
+          echo "url=${{ steps.meta.outputs.url }}"
+          echo "description=${{ steps.meta.outputs.description }}"
+          echo "version=${{ steps.meta.outputs.version }}"
+          echo "source=${{ steps.meta.outputs.source }}"
+
     - name: Docker login
       uses: docker/login-action@v3
       with:
