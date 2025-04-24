@@ -5,6 +5,9 @@ inputs:
   image:
     description: "Docker image name (e.g. my-org/my-app)"
     required: true
+  image_tag:
+    description: "Tag of the Docker image (e.g. latest)"
+    required: true
   registry:
     description: "Docker registry"
     required: false
@@ -18,11 +21,6 @@ inputs:
   github_token:
     description: "GitHub token for summary or label setting"
     required: false
-
-outputs:
-  image_tag:
-    description: "The generated image tag"
-    value: ${{ steps.set-tag.outputs.image_tag }}
 
 runs:
   using: "composite"
@@ -39,14 +37,6 @@ runs:
       run: |
         poetry self add poetry-dynamic-versioning
         pip install toml-cli
-
-    - name: Generate version tag
-      id: set-tag
-      shell: bash
-      run: |
-        version=$(make version)
-        echo "image_tag=$version" >> "$GITHUB_OUTPUT"
-        echo "Version tag from make version: $version"
 
     - name: Extract description from pyproject.toml
       id: get-description
@@ -71,7 +61,7 @@ runs:
       with:
         context: .
         push: true
-        tags: ${{ inputs.registry }}/${{ inputs.image }}:${{ steps.set-tag.outputs.image_tag }}
+        tags: ${{ inputs.registry }}/${{ inputs.image }}:${{ inputs.image_tag }}
         cache-from: type=registry,ref=${{ inputs.registry }}/${{ inputs.image }}:buildcache
         cache-to: type=registry,ref=${{ inputs.registry }}/${{ inputs.image }}:buildcache,mode=max
         build-args: |
@@ -79,4 +69,4 @@ runs:
         labels: |
           org.opencontainers.image.source=https://github.com/${{ github.repository }}
           org.opencontainers.image.description=${{ steps.get-description.outputs.description }}
-          org.opencontainers.image.version=${{ steps.set-tag.outputs.image_tag }}
+          org.opencontainers.image.version=${{ inputs.image_tag }}
