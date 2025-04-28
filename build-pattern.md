@@ -1,4 +1,4 @@
-# 🏭 Microservice Architecture: Build, Test, and Deploy System
+# 🏗️ Microservice Architecture: Build, Test, and Deploy System
 
 This repository defines a standardized architecture for building, testing, and publishing containerized microservices and libraries.  
 It supports multiple service types, with a focus on efficiency, reproducibility, and multi-environment compatibility.
