@@ -44,6 +44,7 @@ runs:
     - name: Extract version and description
       id: extract
       shell: bash
+      working-directory: ${{ github.workspace }}
       run: |
         version=$(make version)
         desc=$(toml get --toml-path pyproject.toml tool.poetry.description | sed 's/^"//;s/"$//')
