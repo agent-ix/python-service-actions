@@ -48,6 +48,8 @@ runs:
       run: |
         pwd
         ls -la
+        cat Makefile || echo "Makefile not found"
+        make version
         version=$(make version)
         desc=$(toml get --toml-path pyproject.toml tool.poetry.description | sed 's/^"//;s/"$//')
         echo "version=$version" >> "$GITHUB_OUTPUT"
