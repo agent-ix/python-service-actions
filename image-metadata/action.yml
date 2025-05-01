@@ -1,5 +1,6 @@
 name: "Image Metadata"
-description: "Generates a build.json file with Docker image metadata"
+description: "Generates image.json for a Python project using shared metadata action"
+
 inputs:
   image:
     description: "Docker image name (e.g. my-org/myapp)"
@@ -9,9 +10,20 @@ inputs:
     required: false
     default: "ghcr.io"
   artifact:
-    description: "build metadata artifact (image.json)"
+    description: "Metadata artifact filename"
     required: false
     default: "image.json"
+  tag_prefix:
+    description: "Optional prefix to prepend to tag (e.g. dev, base)"
+    required: false
+
+outputs:
+  version:
+    value: ${{ steps.meta.outputs.version }}
+  image:
+    value: ${{ steps.meta.outputs.image }}
+  url:
+    value: ${{ steps.meta.outputs.url }}
 
 runs:
   using: "composite"
@@ -23,47 +35,28 @@ runs:
       with:
         poetry-version: 1.8.4
 
-    - name: Install dependencies for versioning and parsing
+    - name: Install tools for versioning and parsing
       shell: bash
       run: |
         poetry self add poetry-dynamic-versioning
         pip install toml-cli
 
-    - name: Extract version from dynamic versioning
-      id: set-tag
+    - name: Extract version and description
+      id: extract
       shell: bash
       run: |
-        poetry self add poetry-dynamic-versioning
         version=$(make version)
-        echo "image_tag=$version" >> "$GITHUB_OUTPUT"
-
-    - name: Extract description from pyproject.toml
-      id: get-description
-      shell: bash
-      run: |
-        pip install toml-cli
         desc=$(toml get --toml-path pyproject.toml tool.poetry.description | sed 's/^"//;s/"$//')
+        echo "version=$version" >> "$GITHUB_OUTPUT"
         echo "description=$desc" >> "$GITHUB_OUTPUT"
 
-    - name: Write ${{ inputs.artifact }}
-      shell: bash
-      run: |
-        cat <<EOF > ${{ inputs.artifact }}
-        {
-          "registry": "${{ inputs.registry }}",
-          "repository": "${{ inputs.image }}",
-          "tag": "${{ steps.set-tag.outputs.image_tag }}",
-          "image": "${{ inputs.registry }}/${{ inputs.image }}",
-          "description": "${{ steps.get-description.outputs.description }}",
-          "url": "${{ inputs.registry }}/${{ inputs.image }}:${{ steps.set-tag.outputs.image_tag }}",
-          "source": "https://github.com/${{ github.repository }}",
-          "description": "${{ steps.get-description.outputs.description }}",
-          "version": "${{ steps.set-tag.outputs.image_tag }}"
-        }
-        EOF
-        cat ${{ inputs.artifact }}
-
-    - uses: actions/upload-artifact@v4
+    - name: Generate image metadata
+      id: meta
+      uses: agent-ix/docker-actions/create-metadata@v1
       with:
-        name: ${{ inputs.artifact }}
-        path: ${{ inputs.artifact }}
+        image: ${{ inputs.image }}
+        registry: ${{ inputs.registry }}
+        artifact: ${{ inputs.artifact }}
+        version: ${{ steps.extract.outputs.version }}
+        description: ${{ steps.extract.outputs.description }}
+        tag_prefix: ${{ inputs.tag_prefix }}

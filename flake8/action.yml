@@ -17,29 +17,12 @@ runs:
   steps:
     - uses: actions/checkout@v4
 
-    - uses: actions/download-artifact@v4
+    - uses: agent-ix/docker-actions/pull@main
+      id: image
       with:
-        name: ${{ inputs.artifact }}
-        path: .
-
-    - name: Extract URL from metadata
-      id: meta
-      shell: bash
-      run: |
-        echo "registry=$(jq -r '.registry' "${{ inputs.artifact }}")" >> "$GITHUB_OUTPUT"
-        echo "url=$(jq -r '.url' "${{ inputs.artifact }}")" >> "$GITHUB_OUTPUT"
-
-    - name: Docker login
-      uses: docker/login-action@v3
-      with:
-        registry: ${{ steps.meta.outputs.registry }}
-        username: ${{ inputs.registry_user }}
-        password: ${{ inputs.registry_password }}
-
-    - name: Pull Docker image
-      shell: bash
-      run: |
-        docker pull ${{ steps.meta.outputs.url }}
+        artifact: ${{ inputs.artifact }}
+        registry_user: ${{ secrets.REGISTRY_USER }}
+        registry_password: ${{ secrets.REGISTRY_PASSWORD }}
 
     - name: Run flake8
       id: run_flake8
