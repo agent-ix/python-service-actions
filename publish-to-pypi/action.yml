@@ -19,4 +19,4 @@ runs:
     - shell: bash
       run: |
         python -m pip install --upgrade twine
-        twine upload -u "${{ inputs.username }}" -p "${{ inputs.password }}" --repository-url "${{ inputs.repository_url }}" "${{ inputs.distribution_folder }}/*"
+        twine upload --verbose -u "${{ inputs.username }}" -p "${{ inputs.password }}" --repository-url "${{ inputs.repository_url }}" "${{ inputs.distribution_folder }}/*"
