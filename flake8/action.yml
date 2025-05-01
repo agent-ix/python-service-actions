@@ -21,8 +21,8 @@ runs:
       id: image
       with:
         artifact: ${{ inputs.artifact }}
-        registry_user: ${{ secrets.REGISTRY_USER }}
-        registry_password: ${{ secrets.REGISTRY_PASSWORD }}
+        registry_user: ${{ inputs.REGISTRY_USER }}
+        registry_password: ${{ inputs.REGISTRY_PASSWORD }}
 
     - name: Run flake8
       id: run_flake8
