@@ -33,7 +33,7 @@ runs:
         docker run \
           --rm \
           -v "$GITHUB_WORKSPACE":/app \
-          ${{ steps.meta.outputs.url }} \
+          ${{ steps.image.outputs.url }} \
           flake8 --format=default . | tee flake8.txt
 
     - uses: actions/upload-artifact@v4

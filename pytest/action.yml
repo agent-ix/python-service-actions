@@ -33,7 +33,7 @@ runs:
         docker run \
           --rm \
           -v "$GITHUB_WORKSPACE":/app \
-          ${{ steps.meta.outputs.url }} \
+          ${{ steps.image.outputs.url }} \
           pytest --json-report --json-report-file=pytest.json
 
     - name: Upload pytest JSON report

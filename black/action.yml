@@ -33,7 +33,7 @@ runs:
         docker run \
           --rm \
           -v "$GITHUB_WORKSPACE":/app \
-          ${{ steps.meta.outputs.url }} \
+          ${{ steps.image.outputs.url }} \
           black --check . 2>&1 | tee black.txt
 
     - name: Upload black output
