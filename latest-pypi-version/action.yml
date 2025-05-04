@@ -40,7 +40,7 @@ runs:
     - name: Install tools for versioning and parsing
       shell: bash
       run: |
-        poetry self add poetry-dynamic-versioning
+        pip install poetry-dynamic-versioning[plugin]
         pip install toml-cli
 
     - shell: bash
