@@ -63,20 +63,20 @@ runs:
         echo "🔍 Fetching version list from: $URL"
 
         # Fetch and parse all existing versions
-        EXISTING_VERSIONS=$(curl -sSfL -H "Authorization: Basic $AUTH" "$URL" \
-          | grep -Eo "${PKG_NAME}-[0-9a-zA-Z_.+-]+\\.(tar\\.gz|whl|zip)" \
-          | sed -E "s/^${PKG_NAME}-([0-9a-zA-Z_.+-]+)\\.(tar\\.gz|whl|zip)$/\1/" \
-          | sort -u)
+        #  EXISTING_VERSIONS=$(curl -sSfL -H "Authorization: Basic $AUTH" "$URL" \
+        #  | grep -Eo "${PKG_NAME}-[0-9a-zA-Z_.+-]+\\.(tar\\.gz|whl|zip)" \
+        #  | sed -E "s/^${PKG_NAME}-([0-9a-zA-Z_.+-]+)\\.(tar\\.gz|whl|zip)$/\1/" \
+        #  | sort -u)
 
-        echo "📦 Found versions:"
-        echo "$EXISTING_VERSIONS"
+        # echo "📦 Found versions:"
+        # echo "$EXISTING_VERSIONS"
 
         # Resolve final unique version
-        ATTEMPT=0
-        while echo "$EXISTING_VERSIONS" | grep -Fxq "$VERSION"; do
-          ATTEMPT=$((ATTEMPT + 1))
-          VERSION="${BASE_VERSION}.${ATTEMPT}"
-        done
+        #ATTEMPT=0
+        #while echo "$EXISTING_VERSIONS" | grep -Fxq "$VERSION"; do
+        #  ATTEMPT=$((ATTEMPT + 1))
+        #  VERSION="${BASE_VERSION}.${ATTEMPT}"
+        #done
 
         echo "✅ Final resolved version: $VERSION"
         echo "package=$PKG_NAME" >> "$GITHUB_OUTPUT"
