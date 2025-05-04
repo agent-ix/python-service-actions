@@ -58,6 +58,7 @@ runs:
       shell: bash
       run: |
         twine upload \
+          --verbose \
           --username "${{ inputs.username }}" \
           --password "$(echo '${{ inputs.password }}')" \
           --repository-url "${{ inputs.registry_url }}" \
