@@ -32,11 +32,16 @@ runs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Set up Poetry
+      uses: abatilo/actions-poetry@v3
+      with:
+        poetry-version: 1.8.4
+
     - name: Install tools for versioning and parsing
       shell: bash
       run: |
-        pip install poetry toml-cli
         poetry self add poetry-dynamic-versioning
+        pip install toml-cli
 
     - shell: bash
       id: resolve
