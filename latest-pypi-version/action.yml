@@ -1,0 +1,58 @@
+name: "Resolve Python Package Version from pypi"
+description: "Resolve first unused version for a Python package in a generic pypi"
+inputs:
+  pyproject:
+    description: "Path to pyproject.toml"
+    required: false
+    default: "pyproject.toml"
+  registry_url:
+    description: "GAR PyPI repo URL (e.g. https://us-central1-python.pkg.dev/my-proj/my-repo/)"
+    required: true
+  username:
+    description: "Username for Basic Auth (e.g. _json_key_base64)"
+    required: true
+  password:
+    description: "Password for Basic Auth (e.g. base64-encoded JSON key)"
+    required: true
+
+outputs:
+  package:
+    description: "Package name"
+    value: ${{ steps.resolve.outputs.package }}
+  version:
+    description: "Resolved new version"
+    value: ${{ steps.resolve.outputs.version }}
+  package_id:
+    description: "Full ID (name==version)"
+    value: ${{ steps.resolve.outputs.package_id }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    - shell: bash
+      id: resolve
+      env:
+        REPO_URL: ${{ inputs.repo_url }}
+        AUTH_HEADER: $(echo -n "${{ inputs.username }}:${{ inputs.password }}" | base64)
+      run: |
+        BASE_VERSION=$(make version)
+        PKG_NAME=$(toml get "${{ inputs.pyproject }}" tool.poetry.name | sed 's/"//g')
+
+        echo "📦 Base version: $BASE_VERSION"BASE_VERSION=$(make version)
+        echo "📦 Package name: $PKG_NAME"
+
+        VERSION="$BASE_VERSION"
+        ATTEMPT=0
+
+        while curl -sSfL -H "Authorization: Basic $(echo -n '${{ inputs.username }}:${{ inputs.password }}' | base64)" \
+          "${REPO_URL}simple/${PKG_NAME}/" | grep -q "$VERSION"; do
+          ATTEMPT=$((ATTEMPT + 1))
+          VERSION="${BASE_VERSION}.$ATTEMPT"
+        done
+
+        echo "✅ Final resolved version: $VERSION"
+        echo "package=$PKG_NAME" >> "$GITHUB_OUTPUT"
+        echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+        echo "package_id=$PKG_NAME==$VERSION" >> "$GITHUB_OUTPUT"

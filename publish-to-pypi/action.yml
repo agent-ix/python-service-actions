@@ -1,22 +1,62 @@
-
-name: Publish to PyPI-compatible server
-description: Publish a Python package using twine
+name: Publish to PyPI-compatible registry
+description: Reusable workflow to build and publish Python packages.
 
 inputs:
-  repository_url:
-    required: true
   username:
+    description: "Username for the PyPI repository"
     required: true
   password:
+    description: "Password for the PyPI repository (e.g. base64-encoded key for GAR)"
     required: true
-  distribution_folder:
+  registry_url:
+    description: "URL of the PyPI repository (e.g. https://<region>-python.pkg.dev/...)"
+    required: true
+  version:
+    description: "Force version of the package to publish (e.g. 0.1.0)"
     required: false
-    default: dist
 
 runs:
-  using: composite
+  using: "composite"
   steps:
-    - shell: bash
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Install Poetry and Twine
+      shell: bash
       run: |
-        python -m pip install --upgrade twine
-        twine upload --verbose -u "${{ inputs.username }}" -p "${{ inputs.password }}" --repository-url "${{ inputs.repository_url }}" "${{ inputs.distribution_folder }}/*"
+        pip install poetry twine
+
+    - name: Install dependencies
+      shell: bash
+      run: |
+        poetry install --no-root
+
+    - name: Set version
+      shell: bash
+      run: |
+        if [ -n "${{ inputs.version }}" ]; then
+          poetry version "${{ inputs.version }}"
+        fi
+
+    - name: Build package
+      shell: bash
+      run: |
+        poetry build
+
+    - name: Upload dist as artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: dist
+        path: dist/*
+        if-no-files-found: error
+
+    - name: Publish to PyPI-compatible registry
+      shell: bash
+      run: |
+        twine upload \
+          --username "${{ inputs.username }}" \
+          --password "$(echo '${{ inputs.password }}')" \
+          --repository-url "${{ inputs.registry_url }}" \
+          dist/*

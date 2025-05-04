@@ -1,0 +1,24 @@
+# action.yml
+name: "Setup .pypirc for Google Artifact Registry"
+description: "Generates a .pypirc file for publishing to Google Artifact Registry"
+inputs:
+  gcp_region:
+    description: "Google Cloud region (e.g., us-central1)"
+    required: true
+  gcp_project_name:
+    description: "Google Cloud project name"
+    required: true
+  gcp_pypi:
+    description: "Google Artifact Registry PyPI repository name"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - shell: bash
+      run: |
+        mkdir -p ~/.config/pypoetry
+        echo "[distutils]" > ~/.pypirc
+        echo "index-servers = internal-pypi" >> ~/.pypirc
+        echo "[internal-pypi]" >> ~/.pypirc
+        echo "repository = https://${{ inputs.gcp_region }}-python.pkg.dev/${{ inputs.gcp_project_name }}/${{ inputs.gcp_pypi }}/" >> ~/.pypirc
