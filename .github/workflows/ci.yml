@@ -29,6 +29,7 @@ jobs:
         with:
           image: ${{ inputs.image }}
           registry: ${{ inputs.registry }}
+          GITHUB_TOKEN: ${{ secrets.REGISTRY_PASSWORD }}
       - uses: agent-ix/python-service-actions/build-image@main
         with:
           REGISTRY_USER: ${{ secrets.REGISTRY_USER }}

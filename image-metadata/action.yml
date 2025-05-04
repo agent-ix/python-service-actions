@@ -65,3 +65,4 @@ runs:
         version: ${{ steps.extract.outputs.version }}
         description: ${{ steps.extract.outputs.description }}
         tag_prefix: ${{ inputs.tag_prefix }}
+        GITHUB_TOKEN: ${{ secrets.REGISTRY_PASSWORD }}
