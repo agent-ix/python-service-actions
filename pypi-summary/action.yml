@@ -31,13 +31,19 @@ runs:
         echo "" >> $GITHUB_STEP_SUMMARY
 
         echo "### 📋 Usage Instructions" >> $GITHUB_STEP_SUMMARY
-        echo '```bash' >> $GITHUB_STEP_SUMMARY
         echo "# Exact version install" >> $GITHUB_STEP_SUMMARY
-        echo "pip install \"$PKG_NAME==$VERSION\" --index-url $REGISTRY_URL/simple" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+        echo "pip install \"$PKG_NAME==$VERSION\"" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "# Poetry add" >> $GITHUB_STEP_SUMMARY
-        echo "poetry add \"$PKG_NAME@$REGISTRY_URL/simple\" --version \"$VERSION\"" >> $GITHUB_STEP_SUMMARY
+        echo '```bash' >> $GITHUB_STEP_SUMMARY
+        echo "poetry add \"$PKG_NAME\" --version \"$VERSION\"" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "# Package ID" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
         echo "$PACKAGE_ID" >> $GITHUB_STEP_SUMMARY
         echo '```' >> $GITHUB_STEP_SUMMARY
