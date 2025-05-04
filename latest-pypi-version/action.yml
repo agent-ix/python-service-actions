@@ -31,6 +31,8 @@ runs:
   steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
     - name: Set up Poetry
       uses: abatilo/actions-poetry@v3
@@ -50,7 +52,7 @@ runs:
         AUTH_HEADER: $(echo -n "${{ inputs.username }}:${{ inputs.password }}" | base64)
       run: |
         BASE_VERSION=$(make version)
-        PKG_NAME=$(toml get "${{ inputs.pyproject }}" tool.poetry.name | sed 's/"//g')
+        PKG_NAME=$(toml get --toml-path "${{ inputs.pyproject }}" tool.poetry.name | sed 's/"//g')
 
         echo "📦 Base version: $BASE_VERSION"BASE_VERSION=$(make version)
         echo "📦 Package name: $PKG_NAME"
