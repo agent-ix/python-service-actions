@@ -49,7 +49,7 @@ runs:
       id: resolve
       env:
         REPO_URL: ${{ inputs.registry_url }}
-        AUTH_HEADER: $(echo -n "${{ inputs.username }}:${{ inputs.password }}" | base64)
+        # AUTH_HEADER: $(echo -n "${{ inputs.username }}:${{ inputs.password }}" | base64)
       run: |
         BASE_VERSION=$(make version)
         PKG_NAME=$(toml get --toml-path "${{ inputs.pyproject }}" tool.poetry.name | sed 's/"//g')
