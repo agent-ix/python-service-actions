@@ -1,0 +1,43 @@
+name: Outputs summary for PyPI upload
+description: Outputs a formatted summary for a PyPI package published to Google Artifact Registry
+
+inputs:
+  version:
+    description: "Version of the package to publish"
+    required: true
+  package:
+    description: "Name of the package"
+    required: true
+  registry_url:
+    description: "Base URL of the GAR PyPI registry (e.g. https://us-central1-python.pkg.dev/my-proj/my-repo)"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Write summary
+      shell: bash
+      run: |
+        VERSION="${{ inputs.version }}"
+        PKG_NAME="${{ inputs.package }}"
+        PACKAGE_ID="$PKG_NAME==$VERSION"
+        REGISTRY_URL="${{ inputs.registry_url }}"
+        PACKAGE_URL="${REGISTRY_URL}/simple/${PKG_NAME}/"
+
+        echo "### 📦 PyPI Package Published to Google Artifact Registry" >> $GITHUB_STEP_SUMMARY
+        echo "- **Package:** \`$PKG_NAME\`" >> $GITHUB_STEP_SUMMARY
+        echo "- **Version:** \`$VERSION\`" >> $GITHUB_STEP_SUMMARY
+        echo "- **Registry URL:** [$REGISTRY_URL]($PACKAGE_URL)" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        echo "### 📋 Usage Instructions" >> $GITHUB_STEP_SUMMARY
+        echo '```bash' >> $GITHUB_STEP_SUMMARY
+        echo "# Exact version install" >> $GITHUB_STEP_SUMMARY
+        echo "pip install \"$PKG_NAME==$VERSION\" --index-url $REGISTRY_URL/simple" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "# Poetry add" >> $GITHUB_STEP_SUMMARY
+        echo "poetry add \"$PKG_NAME@$REGISTRY_URL/simple\" --version \"$VERSION\"" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "# Package ID" >> $GITHUB_STEP_SUMMARY
+        echo "$PACKAGE_ID" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY

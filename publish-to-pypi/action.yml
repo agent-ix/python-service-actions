@@ -33,16 +33,18 @@ runs:
       run: |
         poetry install --no-root
 
-    - name: Set version
-      shell: bash
-      run: |
-        if [ -n "${{ inputs.version }}" ]; then
-          poetry version "${{ inputs.version }}"
-        fi
+    - name: Get Version
+      id: get_version
+      uses: agent-ix/python-service-actions/latest-pypi-version@main
+      with:
+        username: ${ inputs.username }
+        password: ${{ inputs.password }}
+        registry_url: ${{ inputs.registry_url }}
 
     - name: Build package
       shell: bash
       run: |
+        poetry version "${{ steps.get_version.outputs.version }}"
         poetry build
 
     - name: Upload dist as artifact
@@ -60,3 +62,10 @@ runs:
           --password "$(echo '${{ inputs.password }}')" \
           --repository-url "${{ inputs.registry_url }}" \
           dist/*
+
+    - name:  Publish summary
+      uses: agent-ix/python-service-actions/pypi-summary@main
+      with:
+        version: ${{ steps.get_version.outputs.version }}
+        package: ${{ github.event.repository.name }}
+        registry_url: ${{ inputs.registry_url }}
