@@ -62,7 +62,7 @@ runs:
       id: meta
       uses: agent-ix/docker-actions/create-metadata@main
       with:
-        image: ${{ inputs.image }}
+        repository: ${{ inputs.image }}
         registry: ${{ inputs.registry }}
         artifact: ${{ inputs.artifact }}
         version: ${{ steps.extract.outputs.version }}
