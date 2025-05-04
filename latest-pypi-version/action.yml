@@ -31,6 +31,13 @@ runs:
   steps:
     - name: Checkout code
       uses: actions/checkout@v4
+
+    - name: Install tools for versioning and parsing
+      shell: bash
+      run: |
+        pip install poetry toml-cli
+        poetry self add poetry-dynamic-versioning
+
     - shell: bash
       id: resolve
       env:
