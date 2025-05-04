@@ -16,6 +16,9 @@ inputs:
   tag_prefix:
     description: "Optional prefix to prepend to tag (e.g. dev, base)"
     required: false
+  GITHUB_TOKEN:
+    description: "GitHub token for authentication"
+    required: true
 
 outputs:
   version:
@@ -65,4 +68,4 @@ runs:
         version: ${{ steps.extract.outputs.version }}
         description: ${{ steps.extract.outputs.description }}
         tag_prefix: ${{ inputs.tag_prefix }}
-        GITHUB_TOKEN: ${{ secrets.REGISTRY_PASSWORD }}
+        GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
