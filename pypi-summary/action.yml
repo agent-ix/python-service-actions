@@ -29,7 +29,7 @@ runs:
         echo "### 📦 PyPI Package Published to Google Artifact Registry" >> $GITHUB_STEP_SUMMARY
         echo "- **Package:** \`$PKG_NAME\`" >> $GITHUB_STEP_SUMMARY
         echo "- **Version:** \`$VERSION\`" >> $GITHUB_STEP_SUMMARY
-        echo "- **Registry URL:** [$REGISTRY_URL]($PACKAGE_URL)" >> $GITHUB_STEP_SUMMARY
+        echo "- **Registry URL:** \`$PACKAGE_URL\`" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
 
         echo "### 📋 Usage Instructions" >> $GITHUB_STEP_SUMMARY
