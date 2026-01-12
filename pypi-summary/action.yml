@@ -22,6 +22,8 @@ runs:
         PKG_NAME="${{ inputs.package }}"
         PACKAGE_ID="$PKG_NAME==$VERSION"
         REGISTRY_URL="${{ inputs.registry_url }}"
+        # Strip trailing slash if present
+        REGISTRY_URL="${REGISTRY_URL%/}"
         PACKAGE_URL="${REGISTRY_URL}/simple/${PKG_NAME}/"
 
         echo "### 📦 PyPI Package Published to Google Artifact Registry" >> $GITHUB_STEP_SUMMARY
