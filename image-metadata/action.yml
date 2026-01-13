@@ -48,6 +48,8 @@ runs:
       id: extract
       shell: bash
       working-directory: ${{ github.workspace }}
+      env:
+        CI: 'true'
       run: |
         version=$(make version | sed 's/+/-/')
         desc=$(toml get --toml-path pyproject.toml tool.poetry.description | sed 's/^"//;s/"$//')

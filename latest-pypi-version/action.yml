@@ -49,6 +49,7 @@ runs:
       id: resolve
       env:
         REPO_URL: ${{ inputs.registry_url }}
+        CI: 'true'
       run: |
         BASE_VERSION=$(make version)
         PKG_NAME=$(toml get --toml-path "${{ inputs.pyproject }}" tool.poetry.name | sed 's/"//g')
