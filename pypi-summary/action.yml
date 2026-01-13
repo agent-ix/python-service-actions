@@ -19,6 +19,8 @@ runs:
       shell: bash
       run: |
         VERSION="${{ inputs.version }}"
+        # Strip leading v if present
+        VERSION="${VERSION#v}"
         PKG_NAME="${{ inputs.package }}"
         PACKAGE_ID="$PKG_NAME==$VERSION"
         REGISTRY_URL="${{ inputs.registry_url }}"
@@ -29,23 +31,23 @@ runs:
         echo "### 📦 PyPI Package Published to Google Artifact Registry" >> $GITHUB_STEP_SUMMARY
         echo "- **Package:** \`$PKG_NAME\`" >> $GITHUB_STEP_SUMMARY
         echo "- **Version:** \`$VERSION\`" >> $GITHUB_STEP_SUMMARY
-        echo "- **Registry URL:** \`$PACKAGE_URL\`" >> $GITHUB_STEP_SUMMARY
+        echo "- **Registry URL:** [$PACKAGE_URL]($PACKAGE_URL)" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
 
         echo "### 📋 Usage Instructions" >> $GITHUB_STEP_SUMMARY
-        echo "# Exact version install" >> $GITHUB_STEP_SUMMARY
+        echo "#### Exact version install" >> $GITHUB_STEP_SUMMARY
         echo '```' >> $GITHUB_STEP_SUMMARY
         echo "pip install \"$PKG_NAME==$VERSION\"" >> $GITHUB_STEP_SUMMARY
         echo '```' >> $GITHUB_STEP_SUMMARY
 
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "# Poetry add" >> $GITHUB_STEP_SUMMARY
+        echo "#### Poetry add" >> $GITHUB_STEP_SUMMARY
         echo '```bash' >> $GITHUB_STEP_SUMMARY
         echo "poetry add \"$PKG_NAME\" --version \"$VERSION\"" >> $GITHUB_STEP_SUMMARY
         echo '```' >> $GITHUB_STEP_SUMMARY
 
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "# Package ID" >> $GITHUB_STEP_SUMMARY
+        echo "#### Package ID" >> $GITHUB_STEP_SUMMARY
         echo '```' >> $GITHUB_STEP_SUMMARY
         echo "$PACKAGE_ID" >> $GITHUB_STEP_SUMMARY
         echo '```' >> $GITHUB_STEP_SUMMARY
