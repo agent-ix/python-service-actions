@@ -11,6 +11,11 @@ on:
         required: false
         type: string
         default: ghcr.io
+      extra_index_url:
+        description: "Extra PyPI index URL for internal packages"
+        required: false
+        type: string
+        default: ""
     secrets:
       REGISTRY_USER:
         description: "Docker registry username"
@@ -35,6 +40,7 @@ jobs:
           REGISTRY_USER: ${{ secrets.REGISTRY_USER }}
           REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
           GITHUB_TOKEN: ${{ github.token }}
+          extra_index_url: ${{ inputs.extra_index_url }}
 
   pytest:
     runs-on: ubuntu-latest
