@@ -28,6 +28,11 @@ runs:
       run: |
         pip install poetry twine
 
+    - name: Remove local-pypi source (only works in local dev)
+      shell: bash
+      run: |
+        poetry source remove local-pypi 2>/dev/null || true
+
     - name: Install dependencies
       shell: bash
       run: |
