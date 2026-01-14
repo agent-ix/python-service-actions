@@ -23,6 +23,9 @@ on:
       REGISTRY_PASSWORD:
         required: true
         description: "Docker registry password"
+      GCP_KEY:
+        description: "GCP service account JSON key for internal PyPI auth"
+        required: false
 
 jobs:
 
@@ -35,12 +38,21 @@ jobs:
           image: ${{ inputs.image }}
           registry: ${{ inputs.registry }}
           GITHUB_TOKEN: ${{ secrets.REGISTRY_PASSWORD }}
+      - name: Encode and mask GCP key
+        if: ${{ secrets.GCP_KEY != '' }}
+        id: encode
+        run: |
+          KEY64=$(echo '${{ secrets.GCP_KEY }}' | base64 -w 0)
+          echo "::add-mask::$KEY64"
+          echo "key64=$KEY64" >> $GITHUB_OUTPUT
       - uses: agent-ix/docker-actions/build@main
         with:
           REGISTRY_USER: ${{ secrets.REGISTRY_USER }}
           REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
           GITHUB_TOKEN: ${{ github.token }}
           extra_index_url: ${{ inputs.extra_index_url }}
+          pypi_user: ${{ secrets.GCP_KEY != '' && '_json_key_base64' || '' }}
+          pypi_pass: ${{ steps.encode.outputs.key64 }}
 
   pytest:
     runs-on: ubuntu-latest
