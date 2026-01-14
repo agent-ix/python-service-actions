@@ -28,6 +28,14 @@ runs:
       run: |
         pip install poetry twine
 
+    - name: Configure Poetry Auth
+      shell: bash
+      env:
+        PYPI_USERNAME: ${{ inputs.username }}
+        PYPI_PASSWORD: ${{ inputs.password }}
+      run: |
+        poetry config http-basic.internal-pypi "$PYPI_USERNAME" "$PYPI_PASSWORD"
+
     - name: Install dependencies
       shell: bash
       run: |

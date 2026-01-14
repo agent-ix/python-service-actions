@@ -44,6 +44,7 @@ jobs:
         run: |
           KEY64=$(echo '${{ secrets.GCP_KEY }}' | base64 -w 0)
           echo "::add-mask::$KEY64"
+          echo "::add-mask::_json_key_base64"
           echo "key64=$KEY64" >> $GITHUB_OUTPUT
       - uses: agent-ix/docker-actions/build@main
         with:
