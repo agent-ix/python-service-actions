@@ -39,7 +39,7 @@ jobs:
           registry: ${{ inputs.registry }}
           GITHUB_TOKEN: ${{ secrets.REGISTRY_PASSWORD }}
       - name: Encode and mask GCP key
-        if: ${{ secrets.GCP_KEY != '' }}
+        if: secrets.GCP_KEY != ''
         id: encode
         run: |
           KEY64=$(echo '${{ secrets.GCP_KEY }}' | base64 -w 0)
