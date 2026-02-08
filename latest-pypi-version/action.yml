@@ -52,9 +52,12 @@ runs:
     - name: Install tools for versioning and parsing
       shell: bash
       run: |
-        pip install poetry-dynamic-versioning[plugin]
-        pip install toml-cli
-        pip install poethepoet
+        pip install poetry-dynamic-versioning[plugin] toml-cli
+
+    - name: Install project dependencies
+      shell: bash
+      run: |
+        poetry install
 
     - shell: bash
       id: resolve
@@ -62,7 +65,7 @@ runs:
         REPO_URL: ${{ inputs.registry_url }}
         CI: 'true'
       run: |
-        BASE_VERSION=$(make version POE=poe)
+        BASE_VERSION=$(make version)
         PKG_NAME=$(toml get --toml-path "${{ inputs.pyproject }}" tool.poetry.name | sed 's/"//g')
 
         echo "📦 Base version: $BASE_VERSION"

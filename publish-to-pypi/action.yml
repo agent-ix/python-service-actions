@@ -36,7 +36,7 @@ runs:
     - name: Install Poetry and Twine
       shell: bash
       run: |
-        pip install poetry twine poethepoet
+        pip install poetry twine
 
     - name: Configure Poetry Auth
       shell: bash
