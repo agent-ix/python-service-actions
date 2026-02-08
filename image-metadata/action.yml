@@ -19,6 +19,12 @@ inputs:
   GITHUB_TOKEN:
     description: "GitHub token for authentication"
     required: true
+  registry_username:
+    description: "Username for internal PyPI registry (GAR)"
+    required: false
+  registry_password:
+    description: "Password for internal PyPI registry (GAR)"
+    required: false
   python-version:
     description: "Python version to use"
     required: false
@@ -53,6 +59,12 @@ runs:
       run: |
         poetry self add poetry-dynamic-versioning
         pip install toml-cli
+
+    - name: Configure internal registry auth
+      if: inputs.registry_username != '' && inputs.registry_password != ''
+      shell: bash
+      run: |
+        poetry config http-basic.internal-pypi "${{ inputs.registry_username }}" "${{ inputs.registry_password }}"
 
     - name: Install project dependencies
       shell: bash

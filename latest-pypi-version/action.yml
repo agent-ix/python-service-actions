@@ -54,6 +54,11 @@ runs:
       run: |
         pip install poetry-dynamic-versioning[plugin] toml-cli
 
+    - name: Configure internal registry auth
+      shell: bash
+      run: |
+        poetry config http-basic.internal-pypi "${{ inputs.username }}" "${{ inputs.password }}"
+
     - name: Install project dependencies
       shell: bash
       run: |

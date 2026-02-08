@@ -38,6 +38,8 @@ jobs:
           image: ${{ inputs.image }}
           registry: ${{ inputs.registry }}
           GITHUB_TOKEN: ${{ secrets.REGISTRY_PASSWORD }}
+          registry_username: ${{ secrets.GCP_KEY != '' && '_json_key_base64' || '' }}
+          registry_password: ${{ secrets.GCP_KEY != '' && secrets.GCP_KEY || '' }}
       - name: Encode and mask GCP key
 
         id: encode

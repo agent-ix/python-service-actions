@@ -1,0 +1,32 @@
+name: Cleanup GHCR Docker Images
+
+on:
+  schedule:
+    - cron: '0 3 * * *'  # Nightly at 3am UTC
+  workflow_dispatch:
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Authenticate GitHub CLI
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
+
+      - name: Fetch and delete matching image versions
+        env:
+          IMAGE: <your-image-name>  # Just the name, e.g. "my-fastapi-app"
+        run: |
+          gh api --paginate \
+            -H "Accept: application/vnd.github.v3+json" \
+            "/users/${{ github.repository_owner }}/packages/container/${IMAGE}/versions" |
+          jq -c '.[]' | while read -r version; do
+            id=$(echo "$version" | jq -r '.id')
+            tags=$(echo "$version" | jq -r '.metadata.container.tags | join(",")')
+
+            if [[ -z "$tags" ]] || [[ "$tags" =~ ^0\.0\.0\+.*$ ]]; then
+              echo "🗑️ Deleting version ID $id with tags: ${tags:-none}"
+              gh api -X DELETE "/users/${{ github.repository_owner }}/packages/container/${IMAGE}/versions/${id}"
+            else
+              echo "✅ Keeping version ID $id with tags: $tags"
+            fi
+          done
