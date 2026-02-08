@@ -52,17 +52,8 @@ runs:
     - name: Install tools for versioning and parsing
       shell: bash
       run: |
-        pip install poetry-dynamic-versioning[plugin] toml-cli
-
-    - name: Configure internal registry auth
-      shell: bash
-      run: |
-        poetry config http-basic.internal-pypi "${{ inputs.username }}" "${{ inputs.password }}"
-
-    - name: Install project dependencies
-      shell: bash
-      run: |
-        poetry install
+        pip install poetry-dynamic-versioning[plugin] toml-cli poethepoet
+        poetry install --only-root
 
     - shell: bash
       id: resolve
