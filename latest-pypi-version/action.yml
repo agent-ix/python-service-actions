@@ -54,6 +54,7 @@ runs:
       run: |
         pip install poetry-dynamic-versioning[plugin]
         pip install toml-cli
+        pip install poethepoet
 
     - shell: bash
       id: resolve
@@ -61,7 +62,7 @@ runs:
         REPO_URL: ${{ inputs.registry_url }}
         CI: 'true'
       run: |
-        BASE_VERSION=$(make version)
+        BASE_VERSION=$(make version POE=poe)
         PKG_NAME=$(toml get --toml-path "${{ inputs.pyproject }}" tool.poetry.name | sed 's/"//g')
 
         echo "📦 Base version: $BASE_VERSION"

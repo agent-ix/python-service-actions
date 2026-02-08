@@ -53,6 +53,7 @@ runs:
       run: |
         poetry self add poetry-dynamic-versioning
         pip install toml-cli
+        pip install poethepoet
 
     - name: Extract version and description
       id: extract
@@ -61,7 +62,7 @@ runs:
       env:
         CI: 'true'
       run: |
-        version=$(make version | sed 's/+/-/')
+        version=$(make version POE=poe | sed 's/+/-/')
         desc=$(toml get --toml-path pyproject.toml tool.poetry.description | sed 's/^"//;s/"$//')
         echo "version=$version" >> "$GITHUB_OUTPUT"
         echo "description=$desc" >> "$GITHUB_OUTPUT"
