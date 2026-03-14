@@ -5,7 +5,7 @@ org: agent-ix
 component_type: github-actions
 implementation_language: none
 depends_on: []
-standards_alignment: Actions Specification
+standards_alignment: []
 ---
 
 # Python Service Actions Specification
