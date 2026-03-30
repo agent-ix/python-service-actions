@@ -11,6 +11,10 @@ inputs:
   registry_url:
     description: "Base URL of the GAR PyPI registry (e.g. https://us-central1-python.pkg.dev/my-proj/my-repo)"
     required: true
+  skipped:
+    description: "Whether the upload was skipped due to existing version"
+    required: false
+    default: "false"
 
 runs:
   using: "composite"
@@ -27,8 +31,13 @@ runs:
         # Strip trailing slash if present
         REGISTRY_URL="${REGISTRY_URL%/}"
         PACKAGE_URL="${REGISTRY_URL}/simple/${PKG_NAME}/"
+        SKIPPED="${{ inputs.skipped }}"
 
-        echo "### 📦 PyPI Package Published to Google Artifact Registry" >> $GITHUB_STEP_SUMMARY
+        if [ "$SKIPPED" = "true" ]; then
+          echo "### ⏭️ PyPI Package Upload Skipped (Already Exists in Registry)" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "### 📦 PyPI Package Published to Google Artifact Registry" >> $GITHUB_STEP_SUMMARY
+        fi
         echo "- **Package:** \`$PKG_NAME\`" >> $GITHUB_STEP_SUMMARY
         echo "- **Version:** \`$VERSION\`" >> $GITHUB_STEP_SUMMARY
         echo "- **Registry URL:** [$PACKAGE_URL]($PACKAGE_URL)" >> $GITHUB_STEP_SUMMARY

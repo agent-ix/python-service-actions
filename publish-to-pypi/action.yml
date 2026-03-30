@@ -73,6 +73,7 @@ runs:
         if-no-files-found: error
 
     - name: Publish to PyPI-compatible registry
+      id: upload
       shell: bash
       run: |
         twine upload \
@@ -81,7 +82,13 @@ runs:
           --username "${{ inputs.username }}" \
           --password "$(echo '${{ inputs.password }}')" \
           --repository-url "${{ inputs.registry_url }}" \
-          dist/*
+          dist/* 2>&1 | tee twine_output.txt
+        
+        if grep -q "already exists" twine_output.txt || grep -qi "skipping" twine_output.txt; then
+          echo "skipped=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "skipped=false" >> "$GITHUB_OUTPUT"
+        fi
 
     - name:  Publish summary
       uses: agent-ix/python-service-actions/pypi-summary@main
@@ -89,3 +96,4 @@ runs:
         version: ${{ steps.get_version.outputs.version }}
         package: ${{ github.event.repository.name }}
         registry_url: ${{ inputs.registry_url }}
+        skipped: ${{ steps.upload.outputs.skipped }}
