@@ -77,6 +77,7 @@ runs:
       run: |
         twine upload \
           --verbose \
+          --skip-existing \
           --username "${{ inputs.username }}" \
           --password "$(echo '${{ inputs.password }}')" \
           --repository-url "${{ inputs.registry_url }}" \
