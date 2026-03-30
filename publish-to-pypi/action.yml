@@ -76,16 +76,24 @@ runs:
       id: upload
       shell: bash
       run: |
+        set +e
         twine upload \
           --verbose \
-          --skip-existing \
           --username "${{ inputs.username }}" \
-          --password "$(echo '${{ inputs.password }}')" \
+          --password "${{ inputs.password }}" \
           --repository-url "${{ inputs.registry_url }}" \
           dist/* 2>&1 | tee twine_output.txt
+        EXIT_CODE=$?
+        set -e
         
-        if grep -q "already exists" twine_output.txt || grep -qi "skipping" twine_output.txt; then
-          echo "skipped=true" >> "$GITHUB_OUTPUT"
+        if [ $EXIT_CODE -ne 0 ]; then
+          if grep -iq "already exists" twine_output.txt || grep -Eiq "409.*conflict" twine_output.txt; then
+            echo "skipped=true" >> "$GITHUB_OUTPUT"
+            echo "Notice: Package version already exists in registry. Skipping upload."
+          else
+            echo "Error: Upload failed with error code $EXIT_CODE"
+            exit $EXIT_CODE
+          fi
         else
           echo "skipped=false" >> "$GITHUB_OUTPUT"
         fi
