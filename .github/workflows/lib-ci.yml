@@ -1,0 +1,217 @@
+name: Library CI
+
+on:
+  workflow_call:
+    inputs:
+      python-version:
+        description: "Python version to use"
+        required: false
+        type: string
+        default: "3.13"
+      extra_index_url:
+        description: "Extra PyPI index URL for internal packages"
+        required: false
+        type: string
+        default: ""
+    secrets:
+      GCP_KEY:
+        description: "GCP service account JSON key for internal PyPI auth"
+        required: false
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ inputs.python-version }}
+          cache: poetry
+          cache-dependency-path: poetry.lock
+
+      - name: Set up Poetry
+        uses: abatilo/actions-poetry@v3
+        with:
+          poetry-version: 2.3.1
+
+      - name: Configure internal PyPI
+        if: inputs.extra_index_url != ''
+        shell: bash
+        env:
+          EXTRA_INDEX_URL: ${{ inputs.extra_index_url }}
+          GCP_KEY: ${{ secrets.GCP_KEY }}
+        run: |
+          poetry config repositories.internal-pypi "$EXTRA_INDEX_URL"
+
+          if [ -n "$GCP_KEY" ]; then
+            KEY64=$(echo "$GCP_KEY" | base64 -w 0)
+            echo "::add-mask::$KEY64"
+            echo "::add-mask::_json_key_base64"
+            poetry config http-basic.internal-pypi _json_key_base64 "$KEY64"
+          fi
+
+      - name: Install dependencies
+        shell: bash
+        run: poetry install --no-interaction --no-root
+
+      - name: Run pytest and generate JSON report
+        id: run_pytest
+        shell: bash
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          poetry run pytest --json-report --json-report-file=pytest.json
+
+      - name: Upload pytest JSON report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytest
+          path: pytest.json
+
+      - name: Summarize pytest results
+        if: always()
+        uses: agent-ix/pytest-summary@v1
+        with:
+          report-path: pytest.json
+
+      - name: Fail if pytest failed
+        if: steps.run_pytest.outcome != 'success'
+        shell: bash
+        run: exit 1
+
+  black:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ inputs.python-version }}
+          cache: poetry
+          cache-dependency-path: poetry.lock
+
+      - name: Set up Poetry
+        uses: abatilo/actions-poetry@v3
+        with:
+          poetry-version: 2.3.1
+
+      - name: Configure internal PyPI
+        if: inputs.extra_index_url != ''
+        shell: bash
+        env:
+          EXTRA_INDEX_URL: ${{ inputs.extra_index_url }}
+          GCP_KEY: ${{ secrets.GCP_KEY }}
+        run: |
+          poetry config repositories.internal-pypi "$EXTRA_INDEX_URL"
+
+          if [ -n "$GCP_KEY" ]; then
+            KEY64=$(echo "$GCP_KEY" | base64 -w 0)
+            echo "::add-mask::$KEY64"
+            echo "::add-mask::_json_key_base64"
+            poetry config http-basic.internal-pypi _json_key_base64 "$KEY64"
+          fi
+
+      - name: Install dependencies
+        shell: bash
+        run: poetry install --no-interaction --no-root
+
+      - name: Run black
+        id: run_black
+        shell: bash
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          poetry run black --check . 2>&1 | tee black.txt
+
+      - name: Upload black output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: black
+          path: black.txt
+
+      - name: Add summary
+        if: always()
+        shell: bash
+        run: |
+          echo '### ⚫ Black Report' >> "$GITHUB_STEP_SUMMARY"
+          cat black.txt | tee /dev/stderr >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Fail if black failed
+        if: steps.run_black.outcome != 'success'
+        shell: bash
+        run: exit 1
+
+  ruff:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ inputs.python-version }}
+          cache: poetry
+          cache-dependency-path: poetry.lock
+
+      - name: Set up Poetry
+        uses: abatilo/actions-poetry@v3
+        with:
+          poetry-version: 2.3.1
+
+      - name: Configure internal PyPI
+        if: inputs.extra_index_url != ''
+        shell: bash
+        env:
+          EXTRA_INDEX_URL: ${{ inputs.extra_index_url }}
+          GCP_KEY: ${{ secrets.GCP_KEY }}
+        run: |
+          poetry config repositories.internal-pypi "$EXTRA_INDEX_URL"
+
+          if [ -n "$GCP_KEY" ]; then
+            KEY64=$(echo "$GCP_KEY" | base64 -w 0)
+            echo "::add-mask::$KEY64"
+            echo "::add-mask::_json_key_base64"
+            poetry config http-basic.internal-pypi _json_key_base64 "$KEY64"
+          fi
+
+      - name: Install dependencies
+        shell: bash
+        run: poetry install --no-interaction --no-root
+
+      - name: Run ruff
+        id: run_ruff
+        shell: bash
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          poetry run ruff check . | tee ruff.txt
+
+      - name: Upload ruff output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ruff
+          path: ruff.txt
+
+      - name: Add summary
+        if: always()
+        shell: bash
+        run: |
+          echo '### ⚡ Ruff Report' >> "$GITHUB_STEP_SUMMARY"
+          cat ruff.txt | tee /dev/stderr >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Fail if ruff failed
+        if: steps.run_ruff.outcome != 'success'
+        shell: bash
+        run: exit 1
