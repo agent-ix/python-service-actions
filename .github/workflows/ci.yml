@@ -52,7 +52,7 @@ jobs:
         with:
           image: ${{ inputs.image }}
           registry: ${{ inputs.registry }}
-          GITHUB_TOKEN: ${{ secrets.REGISTRY_PASSWORD }}
+          GITHUB_TOKEN: ${{ github.token }}
       - name: Encode and mask GCP key
 
         id: encode
