@@ -54,7 +54,7 @@ jobs:
 
       - name: Install dependencies
         shell: bash
-        run: poetry install --no-interaction --no-root
+        run: poetry install --no-interaction
 
       - name: Run pytest and generate JSON report
         id: run_pytest
@@ -117,7 +117,7 @@ jobs:
 
       - name: Install dependencies
         shell: bash
-        run: poetry install --no-interaction --no-root
+        run: poetry install --no-interaction
 
       - name: Run black
         id: run_black
@@ -181,7 +181,7 @@ jobs:
 
       - name: Install dependencies
         shell: bash
-        run: poetry install --no-interaction --no-root
+        run: poetry install --no-interaction
 
       - name: Run ruff
         id: run_ruff
