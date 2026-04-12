@@ -32,7 +32,14 @@ runs:
         set -o pipefail
         docker run \
           --rm \
+          --network host \
           -v "$GITHUB_WORKSPACE":/app \
+          -e TEST_DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:5432/app_test \
+          -e TEST_DB_HOST=localhost \
+          -e TEST_DB_PORT=5432 \
+          -e TEST_DB_USER=postgres \
+          -e TEST_DB_PASSWORD=postgres \
+          -e TEST_DB_NAME=app_test \
           ${{ steps.image.outputs.url }} \
           pytest --json-report --json-report-file=pytest.json
 

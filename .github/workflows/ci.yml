@@ -16,6 +16,21 @@ on:
         required: false
         type: string
         default: ""
+      helm_chart_path:
+        description: "Optional path to an app Helm chart to package and publish"
+        required: false
+        type: string
+        default: ""
+      helm_chart_registry:
+        description: "Registry host for OCI Helm chart publishing"
+        required: false
+        type: string
+        default: "ghcr.io"
+      helm_chart_repository:
+        description: "OCI repository path for Helm charts (e.g. agent-ix/charts)"
+        required: false
+        type: string
+        default: ""
     secrets:
       REGISTRY_USER:
         description: "Docker registry username"
@@ -54,10 +69,27 @@ jobs:
           extra_index_url: ${{ inputs.extra_index_url }}
           pypi_user: ${{ secrets.GCP_KEY != '' && '_json_key_base64' || '' }}
           pypi_pass: ${{ steps.encode.outputs.key64 }}
+          helm_chart_path: ${{ inputs.helm_chart_path }}
+          helm_chart_registry: ${{ inputs.helm_chart_registry }}
+          helm_chart_repository: ${{ inputs.helm_chart_repository }}
 
   pytest:
     runs-on: ubuntu-latest
     needs: build
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: app_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d app_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: agent-ix/python-service-actions/pytest@main
         with:
