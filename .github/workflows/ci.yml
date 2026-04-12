@@ -44,7 +44,6 @@ on:
 
 permissions:
   contents: read
-  packages: write
   pull-requests: read
 
 jobs:
@@ -68,8 +67,8 @@ jobs:
           echo "key64=$KEY64" >> $GITHUB_OUTPUT
       - uses: agent-ix/docker-actions/build@main
         with:
-          REGISTRY_USER: ${{ inputs.registry == 'ghcr.io' && github.actor || secrets.REGISTRY_USER }}
-          REGISTRY_PASSWORD: ${{ inputs.registry == 'ghcr.io' && github.token || secrets.REGISTRY_PASSWORD }}
+          REGISTRY_USER: ${{ secrets.REGISTRY_USER }}
+          REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
           GITHUB_TOKEN: ${{ github.token }}
           extra_index_url: ${{ inputs.extra_index_url }}
           pypi_user: ${{ secrets.GCP_KEY != '' && '_json_key_base64' || '' }}
@@ -98,8 +97,8 @@ jobs:
     steps:
       - uses: agent-ix/python-service-actions/pytest@main
         with:
-          REGISTRY_USER: ${{ inputs.registry == 'ghcr.io' && github.actor || secrets.REGISTRY_USER }}
-          REGISTRY_PASSWORD: ${{ inputs.registry == 'ghcr.io' && github.token || secrets.REGISTRY_PASSWORD }}
+          REGISTRY_USER: ${{ secrets.REGISTRY_USER }}
+          REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
 
   black:
     runs-on: ubuntu-latest
@@ -107,8 +106,8 @@ jobs:
     steps:
       - uses: agent-ix/python-service-actions/black@main
         with:
-          REGISTRY_USER: ${{ inputs.registry == 'ghcr.io' && github.actor || secrets.REGISTRY_USER }}
-          REGISTRY_PASSWORD: ${{ inputs.registry == 'ghcr.io' && github.token || secrets.REGISTRY_PASSWORD }}
+          REGISTRY_USER: ${{ secrets.REGISTRY_USER }}
+          REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
 
   ruff:
     runs-on: ubuntu-latest
@@ -116,5 +115,5 @@ jobs:
     steps:
       - uses: agent-ix/python-service-actions/ruff@main
         with:
-          REGISTRY_USER: ${{ inputs.registry == 'ghcr.io' && github.actor || secrets.REGISTRY_USER }}
-          REGISTRY_PASSWORD: ${{ inputs.registry == 'ghcr.io' && github.token || secrets.REGISTRY_PASSWORD }}
+          REGISTRY_USER: ${{ secrets.REGISTRY_USER }}
+          REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
