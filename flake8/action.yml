@@ -15,7 +15,7 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - uses: agent-ix/docker-actions/pull@main
       id: image
@@ -36,7 +36,7 @@ runs:
           ${{ steps.image.outputs.url }} \
           flake8 --format=default . | tee flake8.txt
 
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v6
       if: always()
       with:
         name: flake8
