@@ -79,3 +79,6 @@ runs:
         description: ${{ steps.extract.outputs.description }}
         tag_prefix: ${{ inputs.tag_prefix }}
         GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
+        # Every pushed git tag is a release — auto-publish `:latest` alongside
+        # the versioned tag. No per-service config required.
+        is_release: ${{ github.ref_type == 'tag' }}
