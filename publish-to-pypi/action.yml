@@ -55,7 +55,7 @@ runs:
       id: get_version
       uses: agent-ix/python-service-actions/latest-pypi-version@main
       with:
-        username: ${ inputs.username }
+        username: ${{ inputs.username }}
         password: ${{ inputs.password }}
         registry_url: ${{ inputs.registry_url }}
 
