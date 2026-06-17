@@ -32,6 +32,7 @@ runs:
         set -o pipefail
         docker run \
           --rm \
+          --user root \
           --network host \
           -w /app \
           -v "$GITHUB_WORKSPACE":/app \
