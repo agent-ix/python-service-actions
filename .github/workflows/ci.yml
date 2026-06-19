@@ -36,6 +36,11 @@ on:
         required: false
         type: string
         default: "postgres:17"
+      platforms:
+        description: "Target platforms for the Docker build (comma-separated)"
+        required: false
+        type: string
+        default: "linux/amd64,linux/arm64"
     secrets:
       REGISTRY_USER:
         description: "Docker registry username"
@@ -81,6 +86,7 @@ jobs:
           helm_chart_path: ${{ inputs.helm_chart_path }}
           helm_chart_registry: ${{ inputs.helm_chart_registry }}
           helm_chart_repository: ${{ inputs.helm_chart_repository }}
+          platforms: ${{ inputs.platforms }}
 
   pytest:
     runs-on: ubuntu-latest
