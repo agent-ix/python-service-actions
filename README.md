@@ -1,5 +1,7 @@
 # Reusable Docker GitHub Workflows
 
+[![Discord](https://img.shields.io/badge/Discord-Join%20us-5865F2?logo=discord&logoColor=white)](https://discord.gg/6qsdhSPE)
+
 This repo contains reusable workflows for:
 - Building Docker images with PBR versioning
 - Running pytest, black, and flake8 with summary + artifact output
