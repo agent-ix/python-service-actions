@@ -1,0 +1,229 @@
+name: Semantic Module CI
+
+# Reusable CI for Filament semantic modules (spec-artifacts-*, spec-objects-*).
+# These are Python packages whose schemas are generated from TypeSpec, so their
+# tests and schema drift gate also need Node and the repo's npm toolchain
+# (including @agent-ix/semantic-core from GitHub Packages). Plain Python
+# libraries use lib-ci.yml. Each repo decides how its toolchain installs via its
+# own `make semantic-install`; this workflow only calls it.
+
+on:
+  workflow_call:
+    inputs:
+      python-version:
+        description: "Python version to use"
+        required: false
+        type: string
+        default: "3.13"
+      node-version:
+        description: "Node version to use"
+        required: false
+        type: string
+        default: "22"
+      extra_index_url:
+        description: "internal-pypi index URL (quire and other internal packages)"
+        required: true
+        type: string
+    secrets:
+      GCP_KEY:
+        description: "GCP service account JSON key for internal-pypi"
+        required: true
+      REGISTRY_TOKEN:
+        description: "read:packages token for @agent-ix npm packages on GitHub Packages"
+        required: true
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ inputs.python-version }}
+
+      - name: Set up Poetry
+        uses: abatilo/actions-poetry@v3
+        with:
+          poetry-version: 2.3.1
+
+      - name: Configure internal PyPI
+        shell: bash
+        env:
+          EXTRA_INDEX_URL: ${{ inputs.extra_index_url }}
+          GCP_KEY: ${{ secrets.GCP_KEY }}
+        run: |
+          poetry config repositories.internal-pypi "$EXTRA_INDEX_URL"
+          KEY64=$(echo "$GCP_KEY" | base64 -w 0)
+          echo "::add-mask::$KEY64"
+          poetry config http-basic.internal-pypi _json_key_base64 "$KEY64"
+
+      - name: Install Python dependencies
+        shell: bash
+        run: poetry install --no-interaction
+
+      # registry-url + scope make setup-node write an npmrc and export
+      # NPM_CONFIG_USERCONFIG, so `npm ci` authenticates from any directory the
+      # repo's semantic-install target runs it in.
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ inputs.node-version }}
+          registry-url: https://npm.pkg.github.com
+          scope: "@agent-ix"
+
+      - name: Install npm toolchain
+        shell: bash
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.REGISTRY_TOKEN }}
+        run: make semantic-install
+
+      - name: Run pytest and generate JSON report
+        id: run_pytest
+        shell: bash
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          poetry run pytest --json-report --json-report-file=pytest.json
+
+      - name: Upload pytest JSON report
+        if: always() && hashFiles('pytest.json') != ''
+        uses: actions/upload-artifact@v6
+        with:
+          name: pytest
+          path: pytest.json
+
+      - name: Summarize pytest results
+        if: always() && hashFiles('pytest.json') != ''
+        uses: agent-ix/pytest-summary@v1
+        with:
+          report-path: pytest.json
+
+      - name: Fail if pytest failed
+        if: steps.run_pytest.outcome != 'success'
+        shell: bash
+        run: exit 1
+
+  schemas-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ inputs.python-version }}
+
+      - name: Set up Poetry
+        uses: abatilo/actions-poetry@v3
+        with:
+          poetry-version: 2.3.1
+
+      - name: Configure internal PyPI
+        shell: bash
+        env:
+          EXTRA_INDEX_URL: ${{ inputs.extra_index_url }}
+          GCP_KEY: ${{ secrets.GCP_KEY }}
+        run: |
+          poetry config repositories.internal-pypi "$EXTRA_INDEX_URL"
+          KEY64=$(echo "$GCP_KEY" | base64 -w 0)
+          echo "::add-mask::$KEY64"
+          poetry config http-basic.internal-pypi _json_key_base64 "$KEY64"
+
+      - name: Install Python dependencies
+        shell: bash
+        run: poetry install --no-interaction
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ inputs.node-version }}
+          registry-url: https://npm.pkg.github.com
+          scope: "@agent-ix"
+
+      - name: Install npm toolchain
+        shell: bash
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.REGISTRY_TOKEN }}
+        run: make semantic-install
+
+      - name: Check committed schemas match a fresh projection
+        shell: bash
+        run: make schemas-check
+
+  black:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ inputs.python-version }}
+
+      - name: Set up Poetry
+        uses: abatilo/actions-poetry@v3
+        with:
+          poetry-version: 2.3.1
+
+      - name: Configure internal PyPI
+        shell: bash
+        env:
+          EXTRA_INDEX_URL: ${{ inputs.extra_index_url }}
+          GCP_KEY: ${{ secrets.GCP_KEY }}
+        run: |
+          poetry config repositories.internal-pypi "$EXTRA_INDEX_URL"
+          KEY64=$(echo "$GCP_KEY" | base64 -w 0)
+          echo "::add-mask::$KEY64"
+          poetry config http-basic.internal-pypi _json_key_base64 "$KEY64"
+
+      - name: Install Python dependencies
+        shell: bash
+        run: poetry install --no-interaction
+
+      - name: Run black
+        shell: bash
+        run: poetry run black --check .
+
+  ruff:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ inputs.python-version }}
+
+      - name: Set up Poetry
+        uses: abatilo/actions-poetry@v3
+        with:
+          poetry-version: 2.3.1
+
+      - name: Configure internal PyPI
+        shell: bash
+        env:
+          EXTRA_INDEX_URL: ${{ inputs.extra_index_url }}
+          GCP_KEY: ${{ secrets.GCP_KEY }}
+        run: |
+          poetry config repositories.internal-pypi "$EXTRA_INDEX_URL"
+          KEY64=$(echo "$GCP_KEY" | base64 -w 0)
+          echo "::add-mask::$KEY64"
+          poetry config http-basic.internal-pypi _json_key_base64 "$KEY64"
+
+      - name: Install Python dependencies
+        shell: bash
+        run: poetry install --no-interaction
+
+      - name: Run ruff
+        shell: bash
+        run: poetry run ruff check .
