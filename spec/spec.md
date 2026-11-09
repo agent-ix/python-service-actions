@@ -68,6 +68,11 @@ a GitHub Actions job summary.
   (`publish-to-pypi`), and reports the result (`pypi-summary`). These target a
   PyPI-compatible Google Artifact Registry over Basic Auth.
 
+`semantic-module-ci.yml` additionally installs the `quire` CLI from the public
+npm registry (`@agent-ix/quire-cli`, version from the `quire-cli-version` input,
+default `latest`) and puts it on `PATH` before pytest, so module tests that
+shell out to `quire` run instead of skipping.
+
 The reusable workflows wire these actions into end-to-end CI: building the
 Docker image once, transferring it as a tarball to parallel runners, running the
 quality gates, and optionally publishing. The build pattern is documented in
