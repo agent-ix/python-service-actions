@@ -20,6 +20,11 @@ on:
         required: false
         type: string
         default: "22"
+      quire-cli-version:
+        description: "npm version or dist-tag of @agent-ix/quire-cli put on PATH for engine-backed tests"
+        required: false
+        type: string
+        default: "latest"
       extra_index_url:
         description: "internal-pypi index URL (quire and other internal packages)"
         required: true
@@ -80,6 +85,21 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.REGISTRY_TOKEN }}
         run: make semantic-install
+
+      # Engine-backed module tests shell out to `quire` and skip when it is
+      # absent. The CLI is published on the public npm registry; the explicit
+      # --@agent-ix:registry overrides the GitHub Packages scope that setup-node
+      # wrote above, so no token is needed.
+      - name: Install quire CLI
+        shell: bash
+        env:
+          QUIRE_CLI_VERSION: ${{ inputs.quire-cli-version }}
+        run: |
+          npm install -g --prefix "$RUNNER_TEMP/quire-cli" \
+            --@agent-ix:registry=https://registry.npmjs.org/ \
+            "@agent-ix/quire-cli@$QUIRE_CLI_VERSION"
+          echo "$RUNNER_TEMP/quire-cli/bin" >> "$GITHUB_PATH"
+          "$RUNNER_TEMP/quire-cli/bin/quire" --version
 
       - name: Run pytest and generate JSON report
         id: run_pytest
