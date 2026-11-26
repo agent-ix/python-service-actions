@@ -9,3 +9,5 @@ okf_version: "0.1"
 ## Contents
 
 * [Spec](./spec.md)
+
+* [Cloud-authenticated Quire lock refresh](./functional/FR-001-cloud-quire-lock-refresh.md)

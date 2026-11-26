@@ -1,0 +1,133 @@
+name: Refresh Quire Poetry lock
+
+on:
+  workflow_call:
+    inputs:
+      python-version:
+        description: Python version used by the consuming repository
+        required: false
+        type: string
+        default: "3.13"
+      quire-version:
+        description: Exact released Quire version expected in the refreshed lock
+        required: true
+        type: string
+      extra_index_url:
+        description: Existing internal-pypi source URL declared in pyproject.toml
+        required: true
+        type: string
+    secrets:
+      GCP_KEY:
+        description: Existing GCP service account JSON key for internal-pypi
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  refresh-lock:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      EXPECTED_QUIRE_VERSION: ${{ inputs.quire-version }}
+      EXTRA_INDEX_URL: ${{ inputs.extra_index_url }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ inputs.python-version }}
+
+      - name: Set up Poetry
+        uses: abatilo/actions-poetry@v3
+        with:
+          poetry-version: "2.3.1"
+
+      - name: Check the reviewed branch constraint and package source
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PYCODE'
+          import os
+          import re
+          import tomllib
+          from pathlib import Path
+          from urllib.parse import urlsplit
+
+          lock_path = Path("poetry.lock")
+          if lock_path.is_symlink() or not lock_path.is_file():
+              raise SystemExit("poetry.lock must be a regular non-symlink file")
+          version = os.environ["EXPECTED_QUIRE_VERSION"]
+          if not re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", version):
+              raise SystemExit("quire-version must be an exact stable release version")
+          config = tomllib.loads(Path("pyproject.toml").read_text())
+          poetry = config["tool"]["poetry"]
+          quire = poetry["group"]["dev"]["dependencies"]["quire"]
+          if quire != {"version": f"^{version}", "source": "internal-pypi"}:
+              raise SystemExit("branch must declare the reviewed Quire constraint and source")
+          sources = [s for s in poetry["source"] if s["name"] == "internal-pypi"]
+          expected_url = os.environ["EXTRA_INDEX_URL"].rstrip("/")
+          if len(sources) != 1 or sources[0]["url"].rstrip("/") != expected_url:
+              raise SystemExit("index input must match the existing branch package source")
+          url = urlsplit(expected_url)
+          if url.scheme != "https" or not (url.hostname or "").endswith("-python.pkg.dev") or url.username or url.password:
+              raise SystemExit("expected an existing credential-free Artifact Registry HTTPS URL")
+          PYCODE
+
+      - name: Configure existing cloud package authentication
+        shell: bash
+        env:
+          GCP_KEY: ${{ secrets.GCP_KEY }}
+        run: |
+          set -euo pipefail
+          export POETRY_CONFIG_DIR="$RUNNER_TEMP/quire-lock-poetry-config"
+          printf 'POETRY_CONFIG_DIR=%s\n' "$POETRY_CONFIG_DIR" >> "$GITHUB_ENV"
+          KEY64=$(printf '%s' "$GCP_KEY" | base64 -w 0)
+          echo "::add-mask::$KEY64"
+          poetry config repositories.internal-pypi "$EXTRA_INDEX_URL"
+          poetry config http-basic.internal-pypi _json_key_base64 "$KEY64"
+
+      - name: Refresh only the selected dependency lock
+        shell: bash
+        run: |
+          set -euo pipefail
+          poetry update quire --lock --no-interaction --no-ansi
+          git diff --exit-code -- pyproject.toml
+          python - <<'PYCODE'
+          import os
+          import tomllib
+          from pathlib import Path
+          from urllib.parse import urlsplit
+
+          lock_path = Path("poetry.lock")
+          if lock_path.is_symlink() or not lock_path.is_file():
+              raise SystemExit("poetry.lock must be a regular non-symlink file")
+          lock = tomllib.loads(lock_path.read_text())
+          packages = [p for p in lock["package"] if p["name"] == "quire"]
+          if len(packages) != 1 or packages[0]["version"] != os.environ["EXPECTED_QUIRE_VERSION"]:
+              raise SystemExit("lock must resolve exactly the approved released Quire version")
+          source = packages[0].get("source", {})
+          if source.get("reference") != "internal-pypi" or source.get("url", "").rstrip("/") != os.environ["EXTRA_INDEX_URL"].rstrip("/"):
+              raise SystemExit("Quire lock source differs from the existing approved index")
+          for package in lock["package"]:
+              url = urlsplit(package.get("source", {}).get("url", ""))
+              if url.username or url.password:
+                  raise SystemExit("credential-bearing dependency source URL refused")
+          PYCODE
+
+      - name: Return only the refreshed lockfile
+        uses: actions/upload-artifact@v6
+        with:
+          name: poetry-lock-quire
+          path: poetry.lock
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Remove temporary Poetry authentication
+        if: always()
+        shell: bash
+        run: rm -rf "$RUNNER_TEMP/quire-lock-poetry-config"
