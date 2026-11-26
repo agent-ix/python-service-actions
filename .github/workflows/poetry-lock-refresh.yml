@@ -58,6 +58,9 @@ jobs:
           from pathlib import Path
           from urllib.parse import urlsplit
 
+          lock_path = Path("poetry.lock")
+          if lock_path.is_symlink() or not lock_path.is_file():
+              raise SystemExit("poetry.lock must be a regular non-symlink file")
           version = os.environ["EXPECTED_QUIRE_VERSION"]
           if not re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", version):
               raise SystemExit("quire-version must be an exact stable release version")
@@ -100,7 +103,10 @@ jobs:
           from pathlib import Path
           from urllib.parse import urlsplit
 
-          lock = tomllib.loads(Path("poetry.lock").read_text())
+          lock_path = Path("poetry.lock")
+          if lock_path.is_symlink() or not lock_path.is_file():
+              raise SystemExit("poetry.lock must be a regular non-symlink file")
+          lock = tomllib.loads(lock_path.read_text())
           packages = [p for p in lock["package"] if p["name"] == "quire"]
           if len(packages) != 1 or packages[0]["version"] != os.environ["EXPECTED_QUIRE_VERSION"]:
               raise SystemExit("lock must resolve exactly the approved released Quire version")

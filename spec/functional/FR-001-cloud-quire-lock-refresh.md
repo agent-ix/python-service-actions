@@ -8,7 +8,9 @@ type: FR
 
 The shared workflow SHALL refresh the consuming repository's Quire dependency
 lock using its existing cloud package authentication and return only the
-resulting lockfile for review.
+resulting lockfile for review. The `poetry.lock` target SHALL be a regular,
+non-symlink file before authentication/resolution and again before artifact
+upload.
 
 ## Behavior
 

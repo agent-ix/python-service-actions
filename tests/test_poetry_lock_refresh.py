@@ -28,9 +28,23 @@ def guard_script(step):
 class LockRefreshGuards(unittest.TestCase):
     """Exercise the real inline guards with synthetic files and no cloud access."""
 
-    def run_guard(self, step, filename, content, **overrides):
-        with tempfile.TemporaryDirectory() as directory:
+    def run_guard(self, step, filename, content, lock_shape="regular", **overrides):
+        with tempfile.TemporaryDirectory() as directory, tempfile.TemporaryDirectory() as outside:
+            lock_path = Path(directory, "poetry.lock")
+            lock_path.write_text(self.lock())
             Path(directory, filename).write_text(content)
+            if lock_shape != "regular":
+                lock_path.unlink()
+                if lock_shape == "outside-symlink":
+                    target = Path(outside, "outside.lock")
+                    target.write_text(self.lock())
+                    lock_path.symlink_to(target)
+                elif lock_shape == "dangling-symlink":
+                    lock_path.symlink_to(Path(outside, "absent.lock"))
+                elif lock_shape == "directory":
+                    lock_path.mkdir()
+                elif lock_shape != "missing":
+                    raise AssertionError(f"unknown synthetic lock shape: {lock_shape}")
             env = dict(
                 os.environ, EXPECTED_QUIRE_VERSION=VERSION, EXTRA_INDEX_URL=INDEX
             )
@@ -165,6 +179,32 @@ class LockRefreshGuards(unittest.TestCase):
                 )
                 self.assertNotEqual(result.returncode, 0)
                 self.assertIn("credential-free Artifact Registry", result.stderr)
+
+    def test_both_guards_refuse_symlink_missing_and_nonregular_lock_targets(self):
+        """Description: Refuse unsafe upload targets before authentication and upload.
+
+        Assumptions: All targets and symlinks point only into disposable directories.
+        Criteria: Neither guard admits an outside/dangling symlink or nonregular lock.
+        Trace: FR-001-AC-1, FR-001-AC-5
+        """
+        for step, filename, content in [
+            (
+                "Check the reviewed branch constraint and package source",
+                "pyproject.toml",
+                self.source(),
+            ),
+            ("Refresh only the selected dependency lock", "poetry.lock", self.lock()),
+        ]:
+            for shape in [
+                "outside-symlink",
+                "dangling-symlink",
+                "directory",
+                "missing",
+            ]:
+                with self.subTest(step=step, shape=shape):
+                    result = self.run_guard(step, filename, content, lock_shape=shape)
+                    self.assertNotEqual(result.returncode, 0)
+                    self.assertIn("regular non-symlink file", result.stderr)
 
 
 if __name__ == "__main__":
